@@ -37,10 +37,16 @@ variable "public_subnet_az" {
   default     = "ap-northeast-2a"
 }
 
-variable "web_ingress_cidrs" {
-  type        = list(string)
-  description = "웹 트래픽을 허용할 소스 CIDR 목록 (예: [\"0.0.0.0/0\"])"
-  default     = ["0.0.0.0/0"]
+variable "private_subnet_cidr" {
+  type        = string
+  description = "프라이빗 서브넷 CIDR 블록 (예: 10.0.2.0/24)"
+  default     = "10.0.2.0/24"
+}
+
+variable "private_subnet_az" {
+  type        = string
+  description = "프라이빗 서브넷이 위치할 AZ (예: ap-northeast-2a)"
+  default     = "ap-northeast-2a"
 }
 
 

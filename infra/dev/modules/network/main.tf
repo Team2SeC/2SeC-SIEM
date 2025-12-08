@@ -66,42 +66,70 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# 웹용 보안 그룹 (예: DVWA EC2 / ALB 등에 사용 예정)
-resource "aws_security_group" "web" {
-  name        = "${local.name_prefix}-web-sg"
-  description = "Web SG for ${local.name_prefix}"
-  vpc_id      = aws_vpc.this.id
-
-  # HTTP/HTTPS 인바운드 (필요에 따라 소스 CIDR 조정)
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = var.web_ingress_cidrs
-  }
-
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = var.web_ingress_cidrs
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+# 프라이빗 서브넷
+resource "aws_subnet" "private" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_subnet_cidr
+  availability_zone = var.private_subnet_az
 
   tags = merge(
     var.common_tags,
     {
-      Name = "${local.name_prefix}-web-sg"
+      Name = "${local.name_prefix}-private-subnet"
     }
   )
+}
+
+# NAT Gateway용 Elastic IP
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${local.name_prefix}-nat-eip"
+    }
+  )
+
+  depends_on = [aws_internet_gateway.this]
+}
+
+# NAT Gateway
+resource "aws_nat_gateway" "this" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public.id
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${local.name_prefix}-nat-gw"
+    }
+  )
+
+  depends_on = [aws_internet_gateway.this]
+}
+
+# 프라이빗 라우트 테이블
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.this.id
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${local.name_prefix}-private-rt"
+    }
+  )
+}
+
+resource "aws_route" "private_nat" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.this.id
+}
+
+resource "aws_route_table_association" "private" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
 }
 
 

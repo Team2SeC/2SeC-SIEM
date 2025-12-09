@@ -133,6 +133,7 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "iam:DeleteInstanceProfile",
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
+      "iam:TagRole",
       "iam:PassRole",
     ]
 
@@ -153,6 +154,7 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "logs:CreateLogStream",
       "logs:PutLogEvents",
       "logs:DescribeLogStreams",
+      "logs:TagResource",
     ]
 
     resources = [

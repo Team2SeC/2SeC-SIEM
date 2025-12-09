@@ -33,10 +33,32 @@ resource "aws_iam_role_policy_attachment" "ec2_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# CloudWatch Agent 정책 연결 (추후 사용)
+# CloudWatch Agent 정책 연결
 resource "aws_iam_role_policy_attachment" "ec2_cloudwatch" {
   role       = aws_iam_role.ec2.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+# CloudWatch Logs 추가 권한 (Docker 로그 수집용)
+resource "aws_iam_role_policy" "ec2_logs" {
+  name = "${local.name_prefix}-ec2-logs-policy"
+  role = aws_iam_role.ec2.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "arn:aws:logs:*:*:log-group:/aws/ec2/*"
+      }
+    ]
+  })
 }
 
 # EC2 Instance Profile

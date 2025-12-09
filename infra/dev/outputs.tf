@@ -46,6 +46,12 @@ output "dvwa_security_group_id" {
   value       = module.ec2_web.security_group_id
 }
 
+## CloudWatch 로그 그룹 출력
+output "dvwa_log_group_name" {
+  description = "DVWA CloudWatch 로그 그룹 이름"
+  value       = module.cloudwatch.dvwa_log_group_name
+}
+
 ## 접속 정보 안내
 output "access_info" {
   description = "DVWA 접속 및 관리 정보"
@@ -66,6 +72,9 @@ output "access_info" {
      sudo docker ps
      sudo docker logs dvwa
      sudo docker restart dvwa
+
+  📌 CloudWatch Logs 확인
+     aws logs tail ${module.cloudwatch.dvwa_log_group_name} --follow
 
   ⚠️  주의: 포트 80이 사용 중인 경우 자동으로 8080 포트 사용
 

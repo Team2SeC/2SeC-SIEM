@@ -82,6 +82,43 @@ resource "aws_instance" "web" {
                   fi
               }
 
+              install_cloudwatch_agent() {
+                  if ! command -v amazon-cloudwatch-agent-ctl &> /dev/null; then
+                      sudo yum install -y amazon-cloudwatch-agent
+                  fi
+
+                  cat > /tmp/cloudwatch-config.json <<'CWCONFIG'
+              {
+                "logs": {
+                  "logs_collected": {
+                    "files": {
+                      "collect_list": [
+                        {
+                          "file_path": "/var/log/messages",
+                          "log_group_name": "/aws/ec2/dvwa-web-server",
+                          "log_stream_name": "{instance_id}/syslog",
+                          "timezone": "UTC"
+                        },
+                        {
+                          "file_path": "/var/log/docker-dvwa.log",
+                          "log_group_name": "/aws/ec2/dvwa-web-server",
+                          "log_stream_name": "{instance_id}/dvwa-app",
+                          "timezone": "UTC"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+              CWCONFIG
+
+                  sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+                      -a fetch-config \
+                      -m ec2 \
+                      -s \
+                      -c file:/tmp/cloudwatch-config.json
+              }
+
               check_dependencies() {
                   if ! command -v docker &> /dev/null; then
                       install_docker
@@ -110,12 +147,20 @@ resource "aws_instance" "web" {
                       PORT=8080
                   fi
 
+                  sudo touch /var/log/docker-dvwa.log
+                  sudo chmod 666 /var/log/docker-dvwa.log
+
                   sudo docker run -d \
                       --name dvwa \
                       --restart unless-stopped \
+                      --log-driver json-file \
+                      --log-opt max-size=10m \
+                      --log-opt max-file=3 \
                       -p ${PORT}:80 \
                       -e MYSQL_PASS="password" \
                       vulnerables/web-dvwa
+
+                  sudo docker logs -f dvwa >> /var/log/docker-dvwa.log 2>&1 &
               }
 
               get_public_ip() {
@@ -144,6 +189,7 @@ resource "aws_instance" "web" {
 
               main() {
                   check_dependencies
+                  install_cloudwatch_agent
                   cleanup_existing
                   start_dvwa
                   check_service

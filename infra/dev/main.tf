@@ -25,6 +25,16 @@ module "iam" {
   common_tags  = local.common_tags
 }
 
+# CloudWatch Logs 모듈
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+
+  project_name       = var.project_name
+  environment        = var.environment
+  log_retention_days = 7
+  common_tags        = local.common_tags
+}
+
 # EC2 DVWA 웹서버 모듈
 module "ec2_web" {
   source = "./modules/ec2"
@@ -45,8 +55,8 @@ module "ec2_web" {
 
   common_tags = local.common_tags
 
-  # IAM 모듈이 먼저 생성되어야 함
-  depends_on = [module.iam]
+  # IAM 및 CloudWatch 모듈이 먼저 생성되어야 함
+  depends_on = [module.iam, module.cloudwatch]
 }
 
 ## TODO:

@@ -10,7 +10,7 @@ locals {
 # infra/dev/main.tf에서는 해당 모듈을 호출만 하는 루트 모듈 역할을 수행.
 
 module "network" {
-  source = "../modules/network"
+  source = "./modules/network"
 
   project_name = var.project_name
   environment  = var.environment

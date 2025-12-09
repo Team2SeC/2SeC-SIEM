@@ -45,10 +45,15 @@ resource "aws_iam_role" "github_actions" {
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
 }
 
-# GitHub Actions용 Terraform Role에 인프라(VPC 등) 관련 권한을 부여
-resource "aws_iam_role_policy_attachment" "github_actions_infra" {
+# GitHub Actions용 Terraform Role에 인프라(VPC/EC2 등) 관련 권한을 부여
+resource "aws_iam_role_policy_attachment" "github_actions_vpc" {
   role       = aws_iam_role.github_actions.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonVPCFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_ec2" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
 
 # Terraform backend(S3 + DynamoDB) 접근을 위한 최소 권한 부여

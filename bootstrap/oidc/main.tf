@@ -118,4 +118,80 @@ resource "aws_iam_role_policy_attachment" "github_actions_tf_backend" {
   policy_arn = aws_iam_policy.github_actions_tf_backend.arn
 }
 
+# IAM(EC2 Role/Instance Profile) 및 CloudWatch Logs(DVWA 로그 그룹) 관리를 위한 최소 권한 부여
+data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
+  # EC2용 IAM Role 및 Instance Profile 생성/관리
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:CreateInstanceProfile",
+      "iam:DeleteInstanceProfile",
+      "iam:AddRoleToInstanceProfile",
+      "iam:RemoveRoleFromInstanceProfile",
+      "iam:PassRole",
+    ]
+
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-ec2-role",
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.project_name}-${var.environment}-ec2-profile",
+    ]
+  }
+
+  # DVWA용 CloudWatch Logs 그룹(/aws/ec2/dvwa-web-server) 관리
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:DeleteLogGroup",
+      "logs:DescribeLogGroups",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogStreams",
+    ]
+
+    resources = [
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/dvwa-web-server",
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/dvwa-web-server:*",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "github_actions_iam_cloudwatch" {
+  name        = "${var.project_name}-github-actions-iam-cloudwatch"
+  description = "infra/dev EC2 IAM Role/InstanceProfile 및 DVWA CloudWatch Logs 그룹 관리를 위한 최소 권한 정책"
+  policy      = data.aws_iam_policy_document.github_actions_iam_cloudwatch.json
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_iam_cloudwatch" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_iam_cloudwatch.arn
+}
+
+# CI Role이 자기 자신(github-actions-terraform-role)에 대한 IAM 변경을 하지 못하도록 명시적 Deny 정책 추가
+resource "aws_iam_role_policy" "github_actions_deny_self" {
+  name = "${var.project_name}-github-actions-deny-self"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "DenyChangeSelf"
+        Effect = "Deny"
+        Action = [
+          "iam:*"
+        ]
+        Resource = aws_iam_role.github_actions.arn
+      }
+    ]
+  })
+}
+
+
 

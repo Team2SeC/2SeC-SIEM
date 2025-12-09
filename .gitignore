@@ -205,3 +205,50 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ================================
+# Terraform
+# ================================
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+*.tfplan
+
+# ================================
+# AWS Credentials (절대 커밋 금지)
+# ================================
+*.pem
+*.key
+credentials*
+aws_credentials
+
+# ================================
+# IDE
+# ================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+
+# ================================
+# OS
+# ================================
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# ================================
+# Backup files
+# ================================
+*.bak
+*.backup

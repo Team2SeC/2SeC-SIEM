@@ -1,0 +1,42 @@
+# name: Terraform Apply (infra dev)
+#
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - "infra/dev/**"
+#   workflow_dispatch: {}
+#
+# permissions:
+#   id-token: write
+#   contents: read
+#
+# jobs:
+#   apply:
+#     runs-on: ubuntu-latest
+#
+#     defaults:
+#       run:
+#         working-directory: infra/dev
+#
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v5
+#
+#       - name: Set up Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.14.0
+#
+#       - name: Configure AWS credentials (OIDC)
+#         uses: aws-actions/configure-aws-credentials@v5.1.1
+#         with:
+#           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+#           aws-region: ap-northeast-2
+#
+#       - name: Terraform Init
+#         run: terraform init -backend-config="env/dev.backend.hcl"
+#
+#       - name: Terraform Apply
+#         run: terraform apply -auto-approve -var-file="env/dev.tfvars"

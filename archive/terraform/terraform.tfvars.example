@@ -1,0 +1,42 @@
+#--------------------------------------------------------------
+# 2SeC SIEM Infrastructure - Example Variables
+# 이 파일을 terraform.tfvars로 복사하고 값을 설정하세요.
+# terraform.tfvars는 .gitignore에 포함되어 있습니다.
+#--------------------------------------------------------------
+
+# AWS 리전
+aws_region = "ap-northeast-2"
+
+# 프로젝트 설정
+project_name = "2sec"
+environment  = "dev"
+
+# 접근 제어 (필수 - 본인 IP로 변경)
+my_ip    = "YOUR_IP_ADDRESS/32" # 예: "1.2.3.4/32"
+key_name = "2sec-keypair"       # AWS에서 생성한 키페어 이름
+
+# EC2 설정
+ec2_instance_type = "t3.micro"
+
+# Kinesis 설정
+kinesis_shard_count     = 1
+kinesis_retention_hours = 24
+
+# ECS Fargate (Logstash) 설정
+logstash_cpu    = 512
+logstash_memory = 1024
+logstash_image  = "docker.elastic.co/logstash/logstash:8.11.0"
+
+# OpenSearch 설정 (비용 최적화)
+opensearch_version         = "OpenSearch_2.11"
+opensearch_instance_type   = "t3.small.search" # 가장 저렴한 옵션
+opensearch_instance_count  = 1
+opensearch_ebs_volume_size = 10
+opensearch_master_user     = "admin"
+opensearch_master_password = "YourSecurePassword123!" # 최소 8자, 대소문자+숫자+특수문자
+
+# CloudWatch 설정
+log_retention_days = 7
+
+# S3 설정
+snapshot_retention_days = 365 # 1년

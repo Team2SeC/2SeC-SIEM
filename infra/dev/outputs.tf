@@ -55,7 +55,7 @@ output "dvwa_log_group_name" {
 ## 접속 정보 안내
 output "access_info" {
   description = "DVWA 접속 및 관리 정보"
-  value = <<-EOT
+  value       = <<-EOT
 
   ========================================
   DVWA 웹서버 배포 완료!

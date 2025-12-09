@@ -62,9 +62,9 @@ data "aws_iam_policy_document" "github_actions_tf_backend" {
       "s3:GetBucketLocation",
     ]
 
-    # tfstate-${project_name}-${environment}-${account_id} 패턴의 dev/prod 버킷 모두 허용
+    # tfstate-${lower(project_name)}-${environment}-${account_id} 패턴의 dev/prod 버킷 모두 허용
     resources = [
-      "arn:aws:s3:::tfstate-${var.project_name}-*-${data.aws_caller_identity.current.account_id}",
+      "arn:aws:s3:::tfstate-${lower(var.project_name)}-*-${data.aws_caller_identity.current.account_id}",
     ]
   }
 
@@ -79,7 +79,7 @@ data "aws_iam_policy_document" "github_actions_tf_backend" {
     ]
 
     resources = [
-      "arn:aws:s3:::tfstate-${var.project_name}-*-${data.aws_caller_identity.current.account_id}/*",
+      "arn:aws:s3:::tfstate-${lower(var.project_name)}-*-${data.aws_caller_identity.current.account_id}/*",
     ]
   }
 

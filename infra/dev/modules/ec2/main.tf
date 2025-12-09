@@ -93,13 +93,6 @@ resource "aws_instance" "web" {
                   fi
               }
 
-              configure_firewall() {
-                  if command -v firewall-cmd &> /dev/null; then
-                      sudo firewall-cmd --permanent --add-port=80/tcp 2>/dev/null || true
-                      sudo firewall-cmd --reload 2>/dev/null || true
-                  fi
-              }
-
               cleanup_existing() {
                   if sudo docker ps -a | grep -q dvwa; then
                       sudo docker stop dvwa 2>/dev/null || true
@@ -151,7 +144,6 @@ resource "aws_instance" "web" {
 
               main() {
                   check_dependencies
-                  configure_firewall
                   cleanup_existing
                   start_dvwa
                   check_service

@@ -2,7 +2,7 @@ data "aws_caller_identity" "current" {}
 
 locals {
   # S3 버킷 이름은 글로벌 유니크여야 하므로 계정 ID를 포함해서 충돌 방지
-  tfstate_bucket_name = "tfstate-${var.project_name}-${var.environment}-${data.aws_caller_identity.current.account_id}"
+  tfstate_bucket_name = "tfstate-${lower(var.project_name)}-${var.environment}-${data.aws_caller_identity.current.account_id}"
   tfstate_lock_table  = "${var.project_name}-${var.environment}-tf-lock"
 }
 

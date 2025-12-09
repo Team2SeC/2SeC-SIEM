@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "infra/dev/**"
+      
+  workflow_dispatch: {}
 
 permissions:
   id-token: write

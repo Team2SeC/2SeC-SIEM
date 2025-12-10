@@ -59,6 +59,18 @@ module "ec2_web" {
   depends_on = [module.iam, module.cloudwatch]
 }
 
+# Kinesis Data Stream 모듈 (CloudWatch Logs → Kinesis)
+module "kinesis" {
+  source = "./modules/kinesis"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+
+  common_tags   = local.common_tags
+  log_group_name = module.cloudwatch.dvwa_log_group_name
+}
+
 ## TODO:
 ## 이후 CloudWatch Logs, Kinesis, ECS(Logstash), OpenSearch, S3 Snapshot 등도
 ## module "..." { ... } 형태로 modules/ 아래에 정의한 뒤

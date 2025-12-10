@@ -133,6 +133,7 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "iam:DeleteInstanceProfile",
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
+      "iam:GetRole",
       "iam:TagRole",
       "iam:PassRole",
     ]
@@ -150,17 +151,28 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
     actions = [
       "logs:CreateLogGroup",
       "logs:DeleteLogGroup",
-      "logs:DescribeLogGroups",
       "logs:CreateLogStream",
       "logs:PutLogEvents",
       "logs:DescribeLogStreams",
       "logs:TagResource",
+      "logs:PutRetentionPolicy",
     ]
 
     resources = [
       "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/dvwa-web-server",
       "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/dvwa-web-server:*",
     ]
+  }
+
+  # 로그 그룹 리스트 조회(DescribeLogGroups)는 리소스 레벨 제어가 어려우므로 계정 전체에 대해 허용
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:DescribeLogGroups",
+    ]
+
+    resources = ["*"]
   }
 }
 

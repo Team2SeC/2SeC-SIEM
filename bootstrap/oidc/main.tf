@@ -134,9 +134,13 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
       "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:GetInstanceProfile",
       "iam:ListRolePolicies",
       "iam:ListAttachedRolePolicies",
+      "iam:PutRolePolicy",
       "iam:TagRole",
+      "iam:TagInstanceProfile",
       "iam:PassRole",
     ]
 

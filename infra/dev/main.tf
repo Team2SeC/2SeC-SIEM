@@ -67,7 +67,7 @@ module "kinesis" {
   environment  = var.environment
   aws_region   = var.aws_region
 
-  common_tags   = local.common_tags
+  common_tags    = local.common_tags
   log_group_name = module.cloudwatch.dvwa_log_group_name
 }
 

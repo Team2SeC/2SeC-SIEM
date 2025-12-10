@@ -2,6 +2,9 @@ name: Terraform Plan (infra dev)
 
 on:
   pull_request:
+    branches:
+      - main
+      - dev
     paths:
       - "infra/dev/**"
       

@@ -51,7 +51,7 @@ module "ec2_web" {
 
   # 인스턴스 설정
   instance_type    = "t3.micro"
-  root_volume_size = 20
+  root_volume_size = 30
 
   common_tags = local.common_tags
 

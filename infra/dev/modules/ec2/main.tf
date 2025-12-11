@@ -169,7 +169,7 @@ resource "aws_instance" "web" {
                       --log-driver json-file \
                       --log-opt max-size=10m \
                       --log-opt max-file=3 \
-                      -p ${PORT}:80 \
+                      -p $${PORT}:80 \
                       -e MYSQL_PASS="password" \
                       vulnerables/web-dvwa
 
@@ -192,8 +192,8 @@ resource "aws_instance" "web" {
                   if sudo docker ps | grep -q dvwa; then
                       PORT=$(sudo docker port dvwa 80 | cut -d':' -f2)
                       PUBLIC_IP=$(get_public_ip)
-                      echo -e "\nDVWA URL: http://localhost:${PORT}"
-                      [ "$PUBLIC_IP" != "unknown" ] && echo "Public URL: http://${PUBLIC_IP}:${PORT}"
+                      echo -e "\nDVWA URL: http://localhost:$${PORT}"
+                      [ "$PUBLIC_IP" != "unknown" ] && echo "Public URL: http://$${PUBLIC_IP}:$${PORT}"
                       echo -e "Credentials: admin / password\n"
                   else
                       echo "DVWA 시작 실패"

@@ -1,0 +1,65 @@
+name: Logstash Image Build & Push
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "logstash/**"
+      - ".github/workflows/logstash-build-push.yml"
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  # ECR 리포지토리 이름 (bootstrap/ecr 에서 생성된 값과 동일해야 함)
+  # 예: 2sec-dev-logstash
+  ECR_REPOSITORY: 2sec-dev-logstash
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v5.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Logstash image
+        run: |
+          set -e
+
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          IMAGE_URI="${REGISTRY}/${ECR_REPOSITORY}:latest"
+
+          echo "Building image: ${IMAGE_URI}"
+
+          docker build \
+            -t "${IMAGE_URI}" \
+            ./logstash
+
+          docker push "${IMAGE_URI}"
+
+      # 선택 사항: ECS Fargate(Logstash) 서비스 롤링 배포까지 같이 하고 싶을 때 사용
+      # 인프라가 준비된 후 ECS_CLUSTER / ECS_SERVICE 값을 실제 값으로 수정하세요.
+      # - name: Trigger ECS rolling deployment
+      #   run: |
+      #     aws ecs update-service \
+      #       --cluster "2SeC-dev-ecs-cluster" \
+      #       --service "2SeC-dev-logstash" \
+      #       --force-new-deployment
+
+

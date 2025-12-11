@@ -16,4 +16,20 @@ variable "environment" {
   default     = "dev"
 }
 
+variable "logstash_image_repository" {
+  type        = string
+  description = "Logstash ECS 태스크에서 사용할 Docker 이미지 리포지토리 URI (ECR)"
+}
+
+variable "logstash_image_tag" {
+  type        = string
+  description = "Logstash Docker 이미지 태그 (예: latest, git SHA 등)"
+  default     = "latest"
+}
+
+variable "logstash_kcl_application_name" {
+  type        = string
+  description = "Logstash Kinesis 소비자 그룹(KCL application_name)"
+}
+
 

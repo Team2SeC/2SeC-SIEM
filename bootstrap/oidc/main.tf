@@ -132,10 +132,12 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "iam:DeleteRole",
       "iam:AttachRolePolicy",
       "iam:DetachRolePolicy",
+      "iam:DeleteRolePolicy",
       "iam:CreateInstanceProfile",
       "iam:DeleteInstanceProfile",
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
+      "iam:ListInstanceProfilesForRole",
       "iam:GetRole",
       "iam:GetRolePolicy",
       "iam:GetInstanceProfile",
@@ -150,6 +152,7 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
     resources = [
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-ec2-role",
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.project_name}-${var.environment}-ec2-profile",
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-cw-to-kinesis",
     ]
   }
 
@@ -163,8 +166,11 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "logs:CreateLogStream",
       "logs:PutLogEvents",
       "logs:DescribeLogStreams",
+      "logs:DescribeSubscriptionFilters",
       "logs:TagResource",
       "logs:PutRetentionPolicy",
+      "logs:PutSubscriptionFilter",
+      "logs:DeleteSubscriptionFilter",
       "logs:ListTagsForResource",
     ]
 
@@ -184,6 +190,43 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
 
     resources = ["*"]
   }
+}
+
+# Kinesis Data Stream(웹 로그용) 관리를 위한 최소 권한 정책
+data "aws_iam_policy_document" "github_actions_kinesis" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kinesis:CreateStream",
+      "kinesis:DeleteStream",
+      "kinesis:DescribeStream",
+      "kinesis:DescribeStreamSummary",
+      "kinesis:ListShards",
+      "kinesis:AddTagsToStream",
+      "kinesis:IncreaseStreamRetentionPeriod",
+      "kinesis:DecreaseStreamRetentionPeriod",
+      "kinesis:ListTagsForStream",
+      "kinesis:StartStreamEncryption",
+      "kinesis:StopStreamEncryption",
+      "kinesis:UpdateShardCount",
+    ]
+
+    resources = [
+      "arn:aws:kinesis:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stream/${var.project_name}-${var.environment}-web-logs",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "github_actions_kinesis" {
+  name        = "${var.project_name}-github-actions-kinesis"
+  description = "infra/dev Kinesis Data Stream(web logs) 관리를 위한 최소 권한 정책"
+  policy      = data.aws_iam_policy_document.github_actions_kinesis.json
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_kinesis" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_kinesis.arn
 }
 
 resource "aws_iam_policy" "github_actions_iam_cloudwatch" {

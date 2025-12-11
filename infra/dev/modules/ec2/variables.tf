@@ -33,7 +33,7 @@ variable "instance_type" {
 variable "root_volume_size" {
   type        = number
   description = "루트 볼륨 크기 (GB)"
-  default     = 20
+  default     = 30
 }
 
 variable "ssh_allowed_cidr_blocks" {

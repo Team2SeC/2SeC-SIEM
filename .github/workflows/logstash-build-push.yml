@@ -38,20 +38,38 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Logstash image
+      - name: Build Logstash image (latest + git SHA)
         run: |
           set -e
 
           REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-          IMAGE_URI="${REGISTRY}/${ECR_REPOSITORY}:latest"
+          IMAGE_LATEST="${REGISTRY}/${ECR_REPOSITORY}:latest"
+          IMAGE_SHA="${REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}"
 
-          echo "Building image: ${IMAGE_URI}"
+          echo "Building images:"
+          echo "  - ${IMAGE_LATEST}"
+          echo "  - ${IMAGE_SHA}"
 
           docker build \
-            -t "${IMAGE_URI}" \
+            -t "${IMAGE_LATEST}" \
+            -t "${IMAGE_SHA}" \
             ./logstash
 
-          docker push "${IMAGE_URI}"
+      - name: Push Logstash image (main only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -e
+
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          IMAGE_LATEST="${REGISTRY}/${ECR_REPOSITORY}:latest"
+          IMAGE_SHA="${REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}"
+
+          echo "Pushing images:"
+          echo "  - ${IMAGE_LATEST}"
+          echo "  - ${IMAGE_SHA}"
+
+          docker push "${IMAGE_LATEST}"
+          docker push "${IMAGE_SHA}"
 
       # 선택 사항: ECS Fargate(Logstash) 서비스 롤링 배포까지 같이 하고 싶을 때 사용
       # 인프라가 준비된 후 ECS_CLUSTER / ECS_SERVICE 값을 실제 값으로 수정하세요.

@@ -240,6 +240,93 @@ resource "aws_iam_role_policy_attachment" "github_actions_iam_cloudwatch" {
   policy_arn = aws_iam_policy.github_actions_iam_cloudwatch.arn
 }
 
+# ECR(ECS Logstash 이미지) 및 ECS(Fargate 서비스) 관리를 위한 권한 정책
+data "aws_iam_policy_document" "github_actions_ecr_ecs" {
+  # ECR 로그인 토큰 발급은 리소스 수준 제어가 불가능하므로 계정 전체에 대해 허용
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ecr:GetAuthorizationToken",
+    ]
+
+    resources = ["*"]
+  }
+
+  # 특정 ECR 리포지토리(로그스태시용)에 대한 이미지 Push/관리 권한
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:CompleteLayerUpload",
+      "ecr:DescribeImages",
+      "ecr:DescribeRepositories",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:InitiateLayerUpload",
+      "ecr:ListImages",
+      "ecr:PutImage",
+      "ecr:UploadLayerPart",
+    ]
+
+    resources = [
+      "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${lower(var.project_name)}-${var.environment}-logstash",
+    ]
+  }
+
+  # ECS 클러스터/서비스/태스크 정의 관리에 필요한 권한
+  # - Terraform에서 infra/dev ECS 리소스를 생성/수정
+  # - (선택) GitHub Actions에서 update-service로 롤링 배포 트리거
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ecs:CreateCluster",
+      "ecs:DescribeClusters",
+      "ecs:ListClusters",
+      "ecs:DeleteCluster",
+      "ecs:RegisterTaskDefinition",
+      "ecs:DeregisterTaskDefinition",
+      "ecs:DescribeTaskDefinition",
+      "ecs:ListTaskDefinitions",
+      "ecs:CreateService",
+      "ecs:UpdateService",
+      "ecs:DeleteService",
+      "ecs:DescribeServices",
+      "ecs:ListServices",
+      "ecs:UpdateServicePrimaryTaskSet",
+      "ecs:TagResource",
+      "ecs:UntagResource"
+    ]
+
+    resources = ["*"]
+  }
+
+  # ECS 태스크/서비스에서 사용할 Logstash 실행/태스크 Role에 대한 PassRole 허용
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "iam:PassRole",
+    ]
+
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*-logstash-*-role",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "github_actions_ecr_ecs" {
+  name        = "${var.project_name}-github-actions-ecr-ecs"
+  description = "infra/dev Logstash용 ECR 및 ECS(Fargate) 관리를 위한 권한 정책"
+  policy      = data.aws_iam_policy_document.github_actions_ecr_ecs.json
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_ecr_ecs" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_ecr_ecs.arn
+}
+
 # CI Role이 자기 자신(github-actions-terraform-role)에 대한 IAM 변경을 하지 못하도록 명시적 Deny 정책 추가
 resource "aws_iam_role_policy" "github_actions_deny_self" {
   name = "${var.project_name}-github-actions-deny-self"

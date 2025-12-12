@@ -110,16 +110,16 @@ output "logstash_ecr_repository_name" {
   value       = aws_ecr_repository.logstash_custom.name
 }
 
-output "logstash_build_command" {
-  description = "Docker build and push commands for Logstash"
+output "logstash_config_info" {
+  description = "Logstash configuration information"
   value = {
-    ecr_login    = "aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${aws_ecr_repository.logstash_custom.repository_url}"
-    docker_build = "docker build -t ${aws_ecr_repository.logstash_custom.name} ."
-    docker_tag   = "docker tag ${aws_ecr_repository.logstash_custom.name}:latest ${aws_ecr_repository.logstash_custom.repository_url}:latest"
-    docker_push  = "docker push ${aws_ecr_repository.logstash_custom.repository_url}:latest"
+    dockerfile_path    = "./logstash/Dockerfile"
+    config_path       = "./logstash/config/"
+    logstash_config   = "./logstash/config/logstash.config"
+    logstash_yml      = "./logstash/config/logstash.yml"
+    pipelines_yml     = "./logstash/config/pipelines.yml"
   }
 }
-
 
 #--------------------------------------------------------------
 # OpenSearch Outputs

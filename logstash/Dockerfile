@@ -7,27 +7,24 @@ FROM docker.elastic.co/logstash/logstash:8.11.0
 
 # 메타데이터
 LABEL maintainer="2SeC SIEM Team"
-LABEL version="1.0.0"
+LABEL version="1.0.1"
 LABEL description="Custom Logstash for SIEM pipeline with Kinesis support"
 
-# root로 전환하여 플러그인 설치
+# root로 전환하여 패키지 설치
 USER root
 
-# 필요한 패키지 설치 및 업데이트
-RUN yum update -y && \
-    yum install -y curl && \
-    yum clean all
+# 필수 패키지 설치 (재현성 보장을 위해 yum update 제거)
+RUN yum install -y curl && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
 # logstash 사용자로 전환
 USER logstash
 
-# Kinesis 플러그인 설치
-RUN logstash-plugin install logstash-input-kinesis && \
-    logstash-plugin install logstash-output-opensearch && \
-    logstash-plugin install logstash-output-cloudwatch_logs
-
-# 플러그인 리스트 확인 (디버깅용)
-RUN logstash-plugin list --verbose | grep -E "(kinesis|opensearch|cloudwatch)"
+# Kinesis 플러그인 설치 (버전 고정으로 재현성 보장)
+RUN logstash-plugin install --version 6.0.4 logstash-input-kinesis && \
+    logstash-plugin install --version 2.0.2 logstash-output-opensearch && \
+    logstash-plugin install --version 3.0.8 logstash-output-cloudwatch_logs
 
 # 기본 설정 파일들 제거
 RUN rm -f /usr/share/logstash/pipeline/logstash.conf
@@ -52,5 +49,5 @@ EXPOSE 9600
 # 작업 디렉토리 설정
 WORKDIR /usr/share/logstash
 
-# 시작 명령어 (환경변수 대체 활성화)
-CMD ["logstash", "-f", "/usr/share/logstash/pipeline/logstash.conf", "--config.reload.automatic"]
+# pipelines.yml을 사용하도록 수정 (-f 옵션 제거)
+CMD ["logstash", "--config.reload.automatic"]

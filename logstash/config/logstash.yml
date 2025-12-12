@@ -8,12 +8,6 @@ path.data: /usr/share/logstash/data
 path.logs: /usr/share/logstash/logs
 path.settings: /usr/share/logstash/config
 
-# Pipeline settings
-pipeline.id: "${PROJECT_NAME:2sec}-siem-pipeline"
-pipeline.workers: 1
-pipeline.batch.size: 125
-pipeline.batch.delay: 50
-
 # Memory settings (ECS Fargate 1GB 고려)
 pipeline.java_execution: true
 pipeline.plugin_classloaders: true

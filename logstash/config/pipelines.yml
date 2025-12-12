@@ -1,0 +1,32 @@
+#==============================================================================
+# 2SeC SIEM - Logstash Pipelines Configuration
+#==============================================================================
+
+# Main SIEM pipeline
+- pipeline.id: "${PROJECT_NAME:2sec}-siem-main"
+  path.config: "/usr/share/logstash/pipeline/logstash.conf"
+
+  pipeline.workers: 1
+  pipeline.batch.size: 100
+  pipeline.batch.delay: 50
+
+  # Queue 설정 (메모리 기반) #바뀐거는 하드코딩된 id만 실질적으로 수정했습니다!
+  queue.type: memory
+  queue.max_events: 1024
+  queue.max_bytes: 256mb
+  
+# Dead Letter Queue pipeline (향후 확장용)
+# - pipeline.id: "${PROJECT_NAME:2sec}-siem-dlq"
+#   path.config: "/usr/share/logstash/pipeline/dlq.conf"
+#   pipeline.workers: 1
+#   pipeline.batch.size: 50
+#   pipeline.batch.delay: 100
+#   queue.type: persisted
+#   queue.max_bytes: 64mb
+
+# Metrics pipeline (향후 확장용)
+# - pipeline.id: "${PROJECT_NAME:2sec}-siem-metrics"
+#   path.config: "/usr/share/logstash/pipeline/metrics.conf"
+#   pipeline.workers: 1
+#   pipeline.batch.size: 200
+#   pipeline.batch.delay: 25

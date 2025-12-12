@@ -11,7 +11,7 @@
 cd infra/local/opensearch
 # 백그라운드 실행
 docker compose up -d
-# 상태 확인
+# 상태 확인 (9200 포트 명시)
 curl http://localhost:9200
 ```
 
@@ -31,4 +31,5 @@ docker compose down -v
 ## 설정 참고
 - 메모리: `OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m`
 - 보안 플러그인 비활성화: `plugins.security.disabled=true`
+- Dashboards 보안 플러그인 비활성화: `DISABLE_SECURITY_DASHBOARDS_PLUGIN=true` (로그인 페이지 없이 바로 접속)
 - 단일 노드 모드: `discovery.type=single-node`

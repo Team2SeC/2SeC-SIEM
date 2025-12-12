@@ -1,0 +1,18 @@
+#==============================================================================
+# 2SeC SIEM - Logstash Pipelines Configuration
+#==============================================================================
+
+# Main SIEM pipeline
+- pipeline.id: 2sec-siem-main
+  path.config: "/usr/share/logstash/pipeline/logstash.conf"
+  pipeline.workers: 1
+  pipeline.batch.size: 100
+  pipeline.batch.delay: 50
+  config.reload.automatic: true
+  config.reload.interval: 3s
+  queue.type: memory
+  
+# Dead letter queue pipeline (향후 확장용)
+# - pipeline.id: 2sec-siem-dlq
+#   path.config: "/usr/share/logstash/pipeline/dlq.conf"
+#   pipeline.workers: 1

@@ -1,0 +1,53 @@
+#==============================================================================
+# 2SeC SIEM - Logstash Main Configuration
+#==============================================================================
+
+# Node name and path settings
+node.name: "${HOSTNAME:2sec-logstash-node}"
+path.data: /usr/share/logstash/data
+path.logs: /usr/share/logstash/logs
+path.settings: /usr/share/logstash/config
+
+# Pipeline settings
+pipeline.id: "${PROJECT_NAME:2sec}-siem-pipeline"
+pipeline.workers: 1
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# Memory settings (ECS Fargate 1GB 고려)
+pipeline.java_execution: true
+pipeline.plugin_classloaders: true
+
+# Monitoring settings
+monitoring.enabled: false
+xpack.monitoring.enabled: false
+
+# API settings
+api.enabled: true
+api.http.host: "0.0.0.0"
+api.http.port: 9600
+api.environment: "${ENVIRONMENT:dev}"
+
+# Log settings
+log.level: info
+log.format: json
+
+# Config reload settings
+config.reload.automatic: true
+config.reload.interval: 3s
+
+# Dead letter queue settings
+dead_letter_queue.enable: false
+
+# Queue settings (memory 기반)
+queue.type: memory
+queue.max_events: 1024
+queue.max_bytes: 256mb
+
+# Performance settings for AWS environment
+config.support_escapes: true
+allow_env_var_expansion: true
+
+# Shutdown settings
+pipeline.ordered: auto
+pipeline.ecs_compatibility: v8

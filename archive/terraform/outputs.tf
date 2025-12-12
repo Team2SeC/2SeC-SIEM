@@ -98,6 +98,30 @@ output "ecs_service_name" {
 }
 
 #--------------------------------------------------------------
+# Logstash Outputs (새로 추가) 👈
+#--------------------------------------------------------------
+output "logstash_ecr_repository_url" {
+  description = "ECR repository URL for Logstash custom image"
+  value       = aws_ecr_repository.logstash_custom.repository_url
+}
+
+output "logstash_ecr_repository_name" {
+  description = "ECR repository name for Logstash"
+  value       = aws_ecr_repository.logstash_custom.name
+}
+
+output "logstash_build_command" {
+  description = "Docker build and push commands for Logstash"
+  value = {
+    ecr_login    = "aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${aws_ecr_repository.logstash_custom.repository_url}"
+    docker_build = "docker build -t ${aws_ecr_repository.logstash_custom.name} ."
+    docker_tag   = "docker tag ${aws_ecr_repository.logstash_custom.name}:latest ${aws_ecr_repository.logstash_custom.repository_url}:latest"
+    docker_push  = "docker push ${aws_ecr_repository.logstash_custom.repository_url}:latest"
+  }
+}
+
+
+#--------------------------------------------------------------
 # OpenSearch Outputs
 #--------------------------------------------------------------
 output "opensearch_domain_name" {

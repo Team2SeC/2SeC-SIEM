@@ -71,6 +71,27 @@ module "kinesis" {
   log_group_name = module.cloudwatch.dvwa_log_group_name
 }
 
+# ECS Fargate(Logstash) 모듈
+module "ecs" {
+  source = "./modules/ecs"
+
+  project_name  = var.project_name
+  environment   = var.environment
+  aws_region    = var.aws_region
+  common_tags   = local.common_tags
+  vpc_id        = module.network.vpc_id
+  private_subnet_id = module.network.private_subnet_id
+
+  logstash_image_repository = var.logstash_image_repository
+  logstash_image_tag        = var.logstash_image_tag
+
+  kinesis_stream_name = module.kinesis.kinesis_stream_name
+  kinesis_stream_arn  = module.kinesis.kinesis_stream_arn
+
+  kcl_application_name = var.logstash_kcl_application_name
+}
+
+
 ## TODO:
 ## 이후 CloudWatch Logs, Kinesis, ECS(Logstash), OpenSearch, S3 Snapshot 등도
 ## module "..." { ... } 형태로 modules/ 아래에 정의한 뒤

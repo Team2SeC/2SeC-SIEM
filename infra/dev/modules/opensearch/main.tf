@@ -1,6 +1,11 @@
 locals {
-  name_prefix   = "${var.project_name}-${var.environment}"
-  domain_name   = substr("siem-${lower(regexreplace(var.project_name, "[^a-z0-9-]", ""))}-${var.environment}", 0, 28)
+  name_prefix = "${var.project_name}-${var.environment}"
+  # 단순 치환으로 domain_name 길이/문자 제한 만족 (공백/언더스코어는 하이픈으로)
+  domain_name = substr(
+    lower("siem-${replace(replace(var.project_name, " ", "-"), "_", "-")}-${var.environment}"),
+    0,
+    28
+  )
   allowed_cidrs = var.allowed_cidr_blocks != null ? var.allowed_cidr_blocks : [var.vpc_cidr_block]
 }
 
@@ -11,10 +16,10 @@ resource "aws_iam_service_linked_role" "opensearch" {
 }
 
 resource "random_password" "opensearch_master" {
-  count             = var.master_user_password == null ? 1 : 0
-  length            = 16
-  special           = true
-  override_characters = "!@#$%^&*()-_=+"
+  count               = var.master_user_password == null ? 1 : 0
+  length              = 16
+  special             = true
+  override_special    = "!@#$%^&*()-_=+"
 }
 
 locals {
@@ -90,9 +95,9 @@ resource "aws_opensearch_domain" "this" {
   engine_version = var.engine_version
 
   cluster_config {
-    instance_type          = var.instance_type
-    instance_count         = var.instance_count
-    zone_awareness_enabled = false
+    instance_type            = var.instance_type
+    instance_count           = var.instance_count
+    zone_awareness_enabled   = false
     dedicated_master_enabled = false
   }
 

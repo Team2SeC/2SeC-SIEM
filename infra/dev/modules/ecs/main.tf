@@ -210,9 +210,9 @@ resource "aws_ecs_service" "logstash" {
   deployment_maximum_percent         = 200
 
   network_configuration {
-    subnets         = [var.private_subnet_id]
-    security_groups = [aws_security_group.logstash.id]
-    assign_public_ip = "DISABLED"
+    subnets          = [var.private_subnet_id]
+    security_groups  = [aws_security_group.logstash.id]
+    assign_public_ip = false
   }
 
   lifecycle {
@@ -228,5 +228,4 @@ resource "aws_ecs_service" "logstash" {
     }
   )
 }
-
 

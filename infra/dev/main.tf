@@ -71,15 +71,39 @@ module "kinesis" {
   log_group_name = module.cloudwatch.dvwa_log_group_name
 }
 
+module "opensearch" {
+  source = "./modules/opensearch"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+  common_tags  = local.common_tags
+
+  vpc_id              = module.network.vpc_id
+  vpc_cidr_block      = module.network.vpc_cidr_block
+  subnet_ids          = [module.network.private_subnet_id]
+  allowed_cidr_blocks = var.opensearch_allowed_cidr_blocks
+
+  engine_version  = var.opensearch_engine_version
+  instance_type   = var.opensearch_instance_type
+  instance_count  = var.opensearch_instance_count
+  ebs_volume_size = var.opensearch_ebs_volume_size
+
+  log_retention_days = var.opensearch_log_retention_days
+
+  master_user_name     = var.opensearch_master_user_name
+  master_user_password = var.opensearch_master_user_password
+}
+
 # ECS Fargate(Logstash) 모듈
 module "ecs" {
   source = "./modules/ecs"
 
-  project_name  = var.project_name
-  environment   = var.environment
-  aws_region    = var.aws_region
-  common_tags   = local.common_tags
-  vpc_id        = module.network.vpc_id
+  project_name      = var.project_name
+  environment       = var.environment
+  aws_region        = var.aws_region
+  common_tags       = local.common_tags
+  vpc_id            = module.network.vpc_id
   private_subnet_id = module.network.private_subnet_id
 
   logstash_image_repository = var.logstash_image_repository
@@ -96,5 +120,4 @@ module "ecs" {
 ## 이후 CloudWatch Logs, Kinesis, ECS(Logstash), OpenSearch, S3 Snapshot 등도
 ## module "..." { ... } 형태로 modules/ 아래에 정의한 뒤
 ## 이 main.tf에서 조합해 나가면 됩니다.
-
 

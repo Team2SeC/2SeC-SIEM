@@ -32,4 +32,53 @@ variable "logstash_kcl_application_name" {
   description = "Logstash Kinesis 소비자 그룹(KCL application_name)"
 }
 
+# OpenSearch
+variable "opensearch_engine_version" {
+  type        = string
+  description = "OpenSearch 엔진 버전 (예: OpenSearch_2.11)"
+  default     = "OpenSearch_2.11"
+}
+
+variable "opensearch_instance_type" {
+  type        = string
+  description = "OpenSearch 데이터 노드 인스턴스 타입"
+  default     = "t3.small.search"
+}
+
+variable "opensearch_instance_count" {
+  type        = number
+  description = "OpenSearch 데이터 노드 개수"
+  default     = 1
+}
+
+variable "opensearch_ebs_volume_size" {
+  type        = number
+  description = "OpenSearch 데이터 노드 EBS 볼륨 크기(GB)"
+  default     = 10
+}
+
+variable "opensearch_log_retention_days" {
+  type        = number
+  description = "OpenSearch CloudWatch Logs 보존 기간(일)"
+  default     = 7
+}
+
+variable "opensearch_allowed_cidr_blocks" {
+  type        = list(string)
+  description = "OpenSearch에 접근 허용할 CIDR 목록 (미지정 시 VPC CIDR 사용)"
+  default     = null
+}
+
+variable "opensearch_master_user_name" {
+  type        = string
+  description = "OpenSearch 마스터 사용자 이름"
+  default     = "admin"
+}
+
+variable "opensearch_master_user_password" {
+  type        = string
+  description = "OpenSearch 마스터 사용자 비밀번호 (미지정 시 자동 생성)"
+  sensitive   = true
+  default     = null
+}
 

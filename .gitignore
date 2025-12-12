@@ -252,3 +252,6 @@ Thumbs.db
 # ================================
 *.bak
 *.backup
+
+# Local OpenSearch data
+infra/local/opensearch/data/

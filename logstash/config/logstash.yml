@@ -1,47 +1,55 @@
 #==============================================================================
-# 2SeC SIEM - Logstash Main Configuration
+# 2SeC SIEM - Logstash Main Configuration  
+# Optimized for ECS Fargate (1GB memory, 0.5 vCPU)
 #==============================================================================
 
-# Node name and path settings
+# Node identification
 node.name: "${HOSTNAME:2sec-logstash-node}"
+
+# Path settings
 path.data: /usr/share/logstash/data
 path.logs: /usr/share/logstash/logs
 path.settings: /usr/share/logstash/config
 
-# Memory settings (ECS Fargate 1GB 고려)
+# Pipeline settings (단일 파이프라인 최적화)
 pipeline.java_execution: true
 pipeline.plugin_classloaders: true
 
-# Monitoring settings
-monitoring.enabled: false
-xpack.monitoring.enabled: false
+# Memory management (안전한 메모리 사용)
+queue.type: memory
+queue.max_events: 512                 # 1024 → 512 (메모리 절약)
+queue.max_bytes: 128mb                # 256mb → 128mb (안전 마진)
 
-# API settings
+# API settings (헬스체크용)
 api.enabled: true
 api.http.host: "0.0.0.0"
 api.http.port: 9600
 api.environment: "${ENVIRONMENT:dev}"
 
-# Log settings
+# Logging (적절한 레벨)
 log.level: info
 log.format: json
+slowlog.threshold.warn: 5s           # 2s → 5s (경고 빈도 줄임)
+slowlog.threshold.debug: 2s          # info → debug (로그 줄임)
 
-# Config reload settings
+# Config management
 config.reload.automatic: true
-config.reload.interval: 3s
+config.reload.interval: 30s          # 10s → 30s (리소스 절약)
 
-# Dead letter queue settings
+# Dead letter queue (비활성화)
 dead_letter_queue.enable: false
 
-# Queue settings (memory 기반)
-queue.type: memory
-queue.max_events: 1024
-queue.max_bytes: 256mb
-
-# Performance settings for AWS environment
+# AWS environment settings
 config.support_escapes: true
 allow_env_var_expansion: true
 
-# Shutdown settings
+# Pipeline compatibility
 pipeline.ordered: auto
 pipeline.ecs_compatibility: v8
+
+# Monitoring (비활성화)
+monitoring.enabled: false
+xpack.monitoring.enabled: false
+
+# Shutdown settings
+pipeline.unsafe_shutdown: false

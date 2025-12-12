@@ -14,8 +14,7 @@ LABEL description="Custom Logstash for SIEM pipeline with Kinesis support"
 USER root
 
 # 필수 패키지 설치 (재현성 보장을 위해 yum update 제거)
-RUN yum install -y curl && \
-    yum clean all && \
+RUN yum clean all && \
     rm -rf /var/cache/yum
 
 # logstash 사용자로 전환
@@ -30,18 +29,14 @@ RUN logstash-plugin install --version 6.0.4 logstash-input-kinesis && \
 RUN rm -f /usr/share/logstash/pipeline/logstash.conf
 
 # 커스텀 설정 파일들 복사
-COPY --chown=logstash:logstash config/logstash.conf /usr/share/logstash/pipeline/logstash.conf
+COPY --chown=logstash:logstash config/logstash.config /usr/share/logstash/pipeline/logstash.config
 COPY --chown=logstash:logstash config/logstash.yml /usr/share/logstash/config/logstash.yml
 COPY --chown=logstash:logstash config/pipelines.yml /usr/share/logstash/config/pipelines.yml
 
 # 설정 파일 권한 설정
-RUN chmod 644 /usr/share/logstash/pipeline/logstash.conf && \
+RUN chmod 644 /usr/share/logstash/pipeline/logstash.config && \
     chmod 644 /usr/share/logstash/config/logstash.yml && \
     chmod 644 /usr/share/logstash/config/pipelines.yml
-
-# 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:9600/_node/stats || exit 1
 
 # 포트 노출
 EXPOSE 9600

@@ -15,20 +15,6 @@ resource "aws_iam_service_linked_role" "opensearch" {
   aws_service_name = "opensearchservice.amazonaws.com"
 }
 
-resource "aws_secretsmanager_secret" "opensearch_master" {
-  name        = "${local.name_prefix}/opensearch/master-user"
-  description = "OpenSearch master user credentials"
-
-  recovery_window_in_days = 0
-
-  tags = merge(
-    var.common_tags,
-    {
-      Name = "${local.name_prefix}-opensearch-master-secret"
-    }
-  )
-}
-
 resource "aws_security_group" "opensearch" {
   name        = "${local.name_prefix}-opensearch-sg"
   description = "Security group for OpenSearch domain"
@@ -129,11 +115,10 @@ resource "aws_opensearch_domain" "this" {
 
   advanced_security_options {
     enabled                        = true
-    internal_user_database_enabled = true
+    internal_user_database_enabled = false
 
     master_user_options {
-      master_user_name     = var.master_user_name
-      master_user_password = var.master_user_password
+      master_user_arn = var.master_user_arn
     }
   }
 

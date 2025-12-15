@@ -91,15 +91,7 @@ variable "opensearch_allowed_cidr_blocks" {
   default     = null
 }
 
-variable "opensearch_master_user_name" {
+variable "opensearch_master_user_arn" {
   type        = string
-  description = "OpenSearch 마스터 사용자 이름"
-  default     = "admin"
-}
-
-variable "opensearch_master_user_password" {
-  type        = string
-  description = "OpenSearch 마스터 사용자 비밀번호 (미지정 시 자동 생성)"
-  sensitive   = true
-  default     = null
+  description = "IAM 기반 OpenSearch 마스터 사용자 ARN"
 }

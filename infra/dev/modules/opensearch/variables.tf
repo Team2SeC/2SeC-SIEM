@@ -70,15 +70,7 @@ variable "log_retention_days" {
   default     = 7
 }
 
-variable "master_user_name" {
-  description = "OpenSearch 마스터 사용자 이름 (FGAC internal DB)"
+variable "master_user_arn" {
+  description = "IAM 기반 OpenSearch 마스터 사용자 ARN"
   type        = string
-  default     = "admin"
-}
-
-variable "master_user_password" {
-  description = "OpenSearch 마스터 사용자 비밀번호 (FGAC internal DB, 미지정 시 자동 생성)"
-  type        = string
-  sensitive   = true
-  default     = null
 }

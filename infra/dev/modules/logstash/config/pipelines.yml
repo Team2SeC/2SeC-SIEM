@@ -1,0 +1,21 @@
+#==============================================================================
+# 2SeC SIEM - Logstash Pipelines Configuration  
+# ECS Fargate Optimized (1GB memory, 0.5 vCPU)
+#==============================================================================
+
+# Main SIEM pipeline
+- pipeline.id: "main"
+  path.config: "/usr/share/logstash/pipeline/logstash.config"
+  
+  # Performance settings (현실적 최적화)
+  pipeline.workers: 1
+  pipeline.batch.size: 250                                      # ✅ 125 → 250 (OpenSearch 효율성)
+  pipeline.batch.delay: 100                                     # ✅ 50 → 100 (안정성)
+  
+  # Memory settings (안전 마진 확보)
+  queue.type: memory
+  queue.max_events: 400                                         # ✅ 512 → 400 (여유 확보)
+  queue.max_bytes: 100mb                                        # ✅ 128 → 100 (안전 마진)
+
+    # 🔥 추가 최적화 (파이프라인별만 적용)
+  pipeline.ordered: false           # 순서 < 성능 -- 어차피 timestamp에 맞춰서 정렬되는거라서 순서가 상관 없으니 동시 처리 시켜버리려고

@@ -229,3 +229,25 @@ resource "aws_ecs_service" "logstash" {
   )
 }
 
+# OpenSearch 접근 권한 추가
+resource "aws_iam_role_policy" "task_opensearch" {
+  name = "${local.name_prefix}-logstash-opensearch"
+  role = aws_iam_role.task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowOpenSearchAccess"
+        Effect = "Allow"
+        Action = [
+          "es:ESHttpPost",
+          "es:ESHttpPut", 
+          "es:ESHttpGet",
+          "es:ESHttpHead"
+        ]
+        Resource = var.opensearch_domain_arn
+      }
+    ]
+  })
+}

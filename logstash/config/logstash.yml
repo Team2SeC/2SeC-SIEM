@@ -3,53 +3,26 @@
 # Optimized for ECS Fargate (1GB memory, 0.5 vCPU)
 #==============================================================================
 
-# Node identification
+# Node identification - 서버 구분
 node.name: "${HOSTNAME:2sec-logstash-node}"
 
-# Path settings
-path.data: /usr/share/logstash/data
-path.logs: /usr/share/logstash/logs
-path.settings: /usr/share/logstash/config
+# # 메모리 설정은 파이프라인이랑 충돌해서 지움 
 
-# Pipeline settings (단일 파이프라인 최적화)
-pipeline.java_execution: true
-pipeline.plugin_classloaders: true
+# API 설정 - 은 infra/dev/modules/ecs 파일로 다시 보니까 필요없어 보이는 것 같음
 
-# Memory management (안전한 메모리 사용)
-queue.type: memory
-queue.max_events: 512                 # 1024 → 512 (메모리 절약)
-queue.max_bytes: 128mb                # 256mb → 128mb (안전 마진)
-
-# API settings (헬스체크용)
-api.enabled: true
-api.http.host: "0.0.0.0"
-api.http.port: 9600
-api.environment: "${ENVIRONMENT:dev}"
-
-# Logging (적절한 레벨)
-log.level: info
+# 로깅
+log.level: info # 우선 주요 일만 보고되게 
 log.format: json
-slowlog.threshold.warn: 5s           # 2s → 5s (경고 빈도 줄임)
-slowlog.threshold.debug: 2s          # info → debug (로그 줄임)
 
-# Config management
-config.reload.automatic: true
-config.reload.interval: 30s          # 10s → 30s (리소스 절약)
+# 성능 최적화 - ECS 메모리 제한 환경용
+dead_letter_queue.enable: false    # 디스크 I/O 제거로 성능 향상 
+# 메모리가 부족한 상황에서 실패한 데이터를 재처리하기에는 ECS    환경에서 재처리가 복잡하고 메모리 제한 등의 이슈로 그냥 디스크 공간 절약하는 방안으로 가기 -- 실패한 몇 로그가 중요하다면 제거하는게 나을 것 같은데 안정성 측면에서는 이게 나을 것 같음 
+monitoring.enabled: false          # 불필요한 네트워크 트래픽 제거 - 클라우드워치 쓰니까 
 
-# Dead letter queue (비활성화)
-dead_letter_queue.enable: false
+# ECS 환경 최적화 - 안전한 종료 보장
+pipeline.unsafe_shutdown: false # 처리 중인 데이터까지 오픈서치로 보내고 안전하게 종료할 수 있게 세팅
 
-# AWS environment settings
-config.support_escapes: true
-allow_env_var_expansion: true
+# ECS 호환성 - v8 표준 준수
+pipeline.ecs_compatibility: v8 # 호환성 고려해서 고정해둠
 
-# Pipeline compatibility
-pipeline.ordered: auto
-pipeline.ecs_compatibility: v8
-
-# Monitoring (비활성화)
-monitoring.enabled: false
-xpack.monitoring.enabled: false
-
-# Shutdown settings
-pipeline.unsafe_shutdown: false
+# 설정 리로드 - 원래 있던건 ecs 환경에서 어차피 새로운 컨테이너로 교체되는 방식이기에 불필요해서 제거

@@ -15,17 +15,17 @@ resource "aws_iam_service_linked_role" "opensearch" {
   aws_service_name = "opensearchservice.amazonaws.com"
 }
 
-resource "random_password" "opensearch_master" {
-  count               = var.master_user_password == null ? 1 : 0
-  length              = 16
-  special             = true
-  override_special    = "!@#$%^&*()-_=+"
-}
+resource "aws_secretsmanager_secret" "opensearch_master" {
+  name        = "${local.name_prefix}/opensearch/master-user"
+  description = "OpenSearch master user credentials"
 
-locals {
-  master_password = coalesce(
-    var.master_user_password,
-    try(random_password.opensearch_master[0].result, null)
+  recovery_window_in_days = 0
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${local.name_prefix}-opensearch-master-secret"
+    }
   )
 }
 
@@ -133,7 +133,7 @@ resource "aws_opensearch_domain" "this" {
 
     master_user_options {
       master_user_name     = var.master_user_name
-      master_user_password = local.master_password
+      master_user_password = var.master_user_password
     }
   }
 

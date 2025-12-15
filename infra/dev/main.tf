@@ -113,6 +113,11 @@ module "ecs" {
   kinesis_stream_arn  = module.kinesis.kinesis_stream_arn
 
   kcl_application_name = var.logstash_kcl_application_name
+
+  opensearch_endpoint     = var.opensearch_endpoint
+  opensearch_username     = var.opensearch_username
+  opensearch_password     = var.opensearch_password
+  opensearch_index_prefix = var.opensearch_index_prefix
 }
 
 
@@ -120,4 +125,3 @@ module "ecs" {
 ## 이후 CloudWatch Logs, Kinesis, ECS(Logstash), OpenSearch, S3 Snapshot 등도
 ## module "..." { ... } 형태로 modules/ 아래에 정의한 뒤
 ## 이 main.tf에서 조합해 나가면 됩니다.
-

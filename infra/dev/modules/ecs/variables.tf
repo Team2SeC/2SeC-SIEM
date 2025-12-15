@@ -79,4 +79,21 @@ variable "log_retention_days" {
   default     = 7
 }
 
+variable "opensearch_endpoint" {
+  type = string
+}
+
+variable "opensearch_username" {
+  type = string
+}
+
+variable "opensearch_password" {
+  type = string
+}
+
+variable "opensearch_index_prefix" {
+  type    = string
+  default = "dvwa"
+}
+
 

@@ -32,6 +32,28 @@ variable "logstash_kcl_application_name" {
   description = "Logstash Kinesis 소비자 그룹(KCL application_name)"
 }
 
+variable "opensearch_endpoint" {
+  type        = string
+  description = "Logstash가 쓸 OpenSearch 엔드포인트(https://...)"
+}
+
+variable "opensearch_username" {
+  type        = string
+  description = "OpenSearch 기본 인증 사용자 이름"
+}
+
+variable "opensearch_password" {
+  type        = string
+  description = "OpenSearch 기본 인증 사용자 비밀번호"
+  sensitive   = true
+}
+
+variable "opensearch_index_prefix" {
+  type        = string
+  description = "OpenSearch 인덱스 prefix (예: dvwa)"
+  default     = "dvwa"
+}
+
 # OpenSearch
 variable "opensearch_engine_version" {
   type        = string
@@ -81,4 +103,3 @@ variable "opensearch_master_user_password" {
   sensitive   = true
   default     = null
 }
-

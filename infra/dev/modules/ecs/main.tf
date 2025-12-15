@@ -174,6 +174,22 @@ resource "aws_ecs_task_definition" "logstash" {
         {
           name  = "APPLICATION_NAME"
           value = var.kcl_application_name
+        },
+                {
+          name  = "OPENSEARCH_ENDPOINT"
+          value = var.opensearch_endpoint
+        },
+        {
+          name  = "OPENSEARCH_USERNAME"
+          value = var.opensearch_username
+        },
+        {
+          name  = "OPENSEARCH_PASSWORD"
+          value = var.opensearch_password
+        },
+        {
+          name  = "OPENSEARCH_INDEX_PREFIX"
+          value = var.opensearch_index_prefix
         }
         # OpenSearch / S3 / 기타 설정은 추후 env 또는 secrets 로 추가
       ]
@@ -215,12 +231,6 @@ resource "aws_ecs_service" "logstash" {
     assign_public_ip = false
   }
 
-  lifecycle {
-    ignore_changes = [
-      task_definition
-    ]
-  }
-
   tags = merge(
     var.common_tags,
     {
@@ -228,4 +238,3 @@ resource "aws_ecs_service" "logstash" {
     }
   )
 }
-

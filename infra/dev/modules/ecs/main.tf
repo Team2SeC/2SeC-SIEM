@@ -231,6 +231,12 @@ resource "aws_ecs_service" "logstash" {
     assign_public_ip = false
   }
 
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
+  }
+
   tags = merge(
     var.common_tags,
     {

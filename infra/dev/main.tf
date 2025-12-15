@@ -91,8 +91,7 @@ module "opensearch" {
 
   log_retention_days = var.opensearch_log_retention_days
 
-  master_user_name     = var.opensearch_master_user_name
-  master_user_password = var.opensearch_master_user_password
+  master_user_arn = var.opensearch_master_user_arn
 }
 
 # ECS Fargate(Logstash) 모듈

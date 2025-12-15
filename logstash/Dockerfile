@@ -24,9 +24,6 @@ COPY --chown=logstash:logstash --chmod=644 config/logstash.config /usr/share/log
 COPY --chown=logstash:logstash --chmod=644 config/logstash.yml /usr/share/logstash/config/
 COPY --chown=logstash:logstash --chmod=644 config/pipelines.yml /usr/share/logstash/config/
 
-# 포트 노출
-EXPOSE 9600
-
 # 작업 디렉토리 설정
 WORKDIR /usr/share/logstash
 

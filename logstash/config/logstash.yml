@@ -8,10 +8,7 @@ node.name: "${HOSTNAME:2sec-logstash-node}"
 
 # # 메모리 설정은 파이프라인이랑 충돌해서 지움 
 
-# API 설정
-api.enabled: true
-api.http.host: "0.0.0.0"
-api.http.port: 9600
+# API 설정 - 은 infra/dev/modules/ecs 파일로 다시 보니까 필요없어 보이는 것 같음
 
 # 로깅
 log.level: info # 우선 주요 일만 보고되게 

@@ -6,7 +6,7 @@ on:
       - main
       - dev
     paths:
-      - "logstash/**"
+      - 'logstash/**'
       - ".github/workflows/logstash-build-push.yml"
   workflow_dispatch: {}
 

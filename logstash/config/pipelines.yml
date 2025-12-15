@@ -4,7 +4,7 @@
 #==============================================================================
 
 # Main SIEM pipeline
-- pipeline.id: "${PROJECT_NAME:2sec-siem}-main"
+- pipeline.id: "main"
   path.config: "/usr/share/logstash/pipeline/logstash.config"
   
   # Performance settings (현실적 최적화)
@@ -16,35 +16,6 @@
   queue.type: memory
   queue.max_events: 400                                         # ✅ 512 → 400 (여유 확보)
   queue.max_bytes: 100mb                                        # ✅ 128 → 100 (안전 마진)
-  
-  # Pipeline optimization (logstash.yml과 분리)
-  pipeline.unsafe_shutdown: false                               # ✅ 안전한 종료
-  
-# Error handling pipeline (메모리 기반으로 변경)
-- pipeline.id: "${PROJECT_NAME:2sec-siem}-errors"
-  path.config: "/usr/share/logstash/pipeline/error-handler.config"
-  
-  pipeline.workers: 1
-  pipeline.batch.size: 50                                       # 에러 로그는 적은 배치
-  pipeline.batch.delay: 200                                     # 우선순위 낮음
-  
-  queue.type: memory                                            # ✅ persisted → memory
-  queue.max_events: 100
-  queue.max_bytes: 20mb                                         # 에러용 최소 할당
 
-#==============================================================================
-# 확장성 가이드 (현실적)  
-#==============================================================================
-# 
-# 현재 메모리 사용량:
-# - Main pipeline queue: 100MB
-# - Error pipeline queue: 20MB  
-# - JVM heap: 650MB (768MB → 650MB 권장)
-# - 기타: 200MB
-# - 총합: 970MB (안전 마진 54MB)
-#
-# 추가 파이프라인 시:
-# - 최대 queue 할당 가능: 50MB  
-# - 권장 workers 총합: 2개 이하
-# - JVM 힙 크기 조정 필요시 Dockerfile 수정
-#
+    # 🔥 추가 최적화 (파이프라인별만 적용)
+  pipeline.ordered: false           # 순서 < 성능 -- 어차피 timestamp에 맞춰서 정렬되는거라서 순서가 상관 없으니 동시 처리 시켜버리려고

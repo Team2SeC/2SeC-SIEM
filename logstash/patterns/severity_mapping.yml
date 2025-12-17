@@ -1,0 +1,43 @@
+#==============================================================================
+# 2SeC SIEM - Severity Mapping Configuration
+# 공격 타입별 심각도 및 우선순위 정의
+#==============================================================================
+
+# 메타데이터
+metadata:
+  version: "1.0.0"
+  description: "Attack severity and priority mapping for SIEM alerting"
+  author: "2SeC SIEM Team"
+
+# 공격 타입별 심각도 매핑
+attack_severity:
+  # 심각도: critical (최고 위험)
+  COMMAND_INJECTION: "critical"      # OS 커맨드 실행 = 시스템 장악
+  
+  # 심각도: high (높은 위험)  
+  SQL_INJECTION: "high"              # 데이터베이스 접근/조작
+  XSS: "high"                        # 사용자 세션 탈취 가능
+  HTTP_REQUEST_SMUGGLING: "high"     # 프록시/웹서버 우회, 보안 컨트롤 무력화
+  # FILE_INCLUSION: "high"             # 서버 파일 접근 - 아직 공격 패턴에 없음
+  
+  # 심각도: medium (중간 위험)
+  DIRECTORY_TRAVERSAL: "medium"      # 파일 시스템 탐색
+  CSRF: "medium"                     # 사용자 권한 악용
+  XXE: "medium"                      # XML 기반 공격
+  SSRF: "medium"                     # 내부 네트워크 스캔, 메타데이터 접근
+  
+  # 심각도: low (낮은 위험)
+  # INFORMATION_DISCLOSURE: "low"      # 정보 노출 (중요도에 따라) - 아직 공격 패턴에 없음
+  # BRUTE_FORCE: "low"                 # 무차별 대입 공격 - 아직 공격 패턴에 없음 
+  
+  # 심각도: info (정보성) : 아직 공격 패턴에 없음
+  # SUSPICIOUS_PATTERN: "info"         # 의심스러운 패턴
+  # RECONNAISSANCE: "info"             # 정찰 활동
+
+# 심각도 레벨 정의 (숫자가 클수록 위험)
+severity_levels:
+  info: 1          # 정보성 - 참고용
+  low: 2           # 낮은 위험 - 모니터링 필요
+  medium: 3        # 중간 위험 - 주의 필요  
+  high: 4          # 높은 위험 - 즉시 대응 필요
+  critical: 5      # 최고 위험 - 긴급 대응 필요

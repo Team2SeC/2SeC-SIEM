@@ -23,3 +23,6 @@ COPY --chown=logstash:logstash --chmod=644 config/pipelines.yml /usr/share/logst
 
 # 작업 디렉토리 설정
 WORKDIR /usr/share/logstash
+
+# 
+CMD ["logstash", "--config.reload.automatic"]

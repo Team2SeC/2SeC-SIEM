@@ -10,9 +10,10 @@ locals {
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_iam_service_linked_role" "opensearch" {
-  aws_service_name = "opensearchservice.amazonaws.com"
-}
+# OpenSearch Service Linked Role은 계정당 한 번만 생성되며 여러 도메인이 공유합니다.
+# 이미 존재하는 경우 Terraform으로 관리하지 않고 data source로 참조만 합니다.
+# 수동으로 생성: aws iam create-service-linked-role --aws-service-name opensearchservice.amazonaws.com
+# 또는 첫 OpenSearch 도메인 생성 시 AWS가 자동으로 생성합니다.
 
 resource "aws_cloudwatch_log_group" "opensearch_logs" {
   name              = "/aws/opensearch/${local.domain_name}"
@@ -124,7 +125,6 @@ resource "aws_opensearch_domain" "this" {
   )
 
   depends_on = [
-    aws_iam_service_linked_role.opensearch,
     aws_cloudwatch_log_resource_policy.opensearch
   ]
 }

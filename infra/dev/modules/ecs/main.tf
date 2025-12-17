@@ -2,6 +2,12 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
+  # OpenSearch 도메인 이름은 opensearch 모듈과 동일한 규칙을 사용해야 함
+  opensearch_domain_name = substr(
+    lower("siem-${replace(replace(var.project_name, " ", "-"), "_", "-")}-${var.environment}"),
+    0,
+    28
+  )
 }
 
 # ECS Cluster for Logstash
@@ -129,6 +135,17 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
           "dynamodb:Query"
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.kcl_application_name}"
+      },
+      {
+        Sid    = "AllowOpenSearchDataPlane"
+        Effect = "Allow"
+        Action = [
+          "es:ESHttpGet",
+          "es:ESHttpPost",
+          "es:ESHttpPut"
+        ]
+        # opensearch 모듈과 동일한 도메인 네이밍 규칙을 사용하여 ARN 계산
+        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.opensearch_domain_name}/*"
       }
     ]
   })
@@ -168,6 +185,10 @@ resource "aws_ecs_task_definition" "logstash" {
           value = var.aws_region
         },
         {
+          name  = "PROJECT_NAME"
+          value = var.project_name
+        },
+        {
           name  = "KINESIS_STREAM_NAME"
           value = var.kinesis_stream_name
         },
@@ -176,20 +197,8 @@ resource "aws_ecs_task_definition" "logstash" {
           value = var.kcl_application_name
         },
                 {
-          name  = "OPENSEARCH_ENDPOINT"
-          value = var.opensearch_endpoint
-        },
-        {
-          name  = "OPENSEARCH_USERNAME"
-          value = var.opensearch_username
-        },
-        {
-          name  = "OPENSEARCH_PASSWORD"
-          value = var.opensearch_password
-        },
-        {
-          name  = "OPENSEARCH_INDEX_PREFIX"
-          value = var.opensearch_index_prefix
+          name  = "OPENSEARCH_HOST"
+          value = var.opensearch_host
         }
         # OpenSearch / S3 / 기타 설정은 추후 env 또는 secrets 로 추가
       ]

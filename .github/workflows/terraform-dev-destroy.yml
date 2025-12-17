@@ -1,7 +1,12 @@
 name: Terraform Destroy (infra dev)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm infrastructure deletion'
+        required: true
+        default: ''
 
 permissions:
   id-token: write
@@ -16,6 +21,14 @@ jobs:
         working-directory: infra/dev
 
     steps:
+      - name: Validate manual confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "destroy" ]; then
+            echo "❌ Confirmation failed. You must type 'destroy' to proceed."
+            exit 1
+          fi
+          echo "✅ Confirmation received. Proceeding with destroy..."
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -32,6 +45,13 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -backend-config="env/dev.backend.hcl"
+
+      - name: Remove Service Linked Role from State (if exists)
+        run: |
+          # Service Linked Role은 Terraform으로 관리하지 않으므로 state에서 제거
+          # 실제 AWS 리소스는 삭제하지 않고 Terraform 관리에서만 제외
+          terraform state rm module.opensearch.aws_iam_service_linked_role.opensearch 2>/dev/null || true
+        continue-on-error: true
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve -var-file="env/dev.tfvars"

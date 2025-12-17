@@ -52,6 +52,34 @@ output "dvwa_log_group_name" {
   value       = module.cloudwatch.dvwa_log_group_name
 }
 
+## OpenSearch 출력
+output "opensearch_domain_name" {
+  description = "OpenSearch 도메인 이름"
+  value       = module.opensearch.domain_name
+}
+
+output "opensearch_domain_endpoint" {
+  description = "OpenSearch 도메인 엔드포인트"
+  value       = module.opensearch.domain_endpoint
+}
+
+output "opensearch_dashboard_endpoint" {
+  description = "OpenSearch Dashboards 엔드포인트"
+  value       = module.opensearch.dashboard_endpoint
+}
+
+## OpenSearch SG 출력 (VPC 전용 도메인에서만 사용)
+# 현재는 Public 도메인을 사용하고, Security Group을 생성하지 않으므로 비활성화
+# output "opensearch_security_group_id" {
+#   description = "OpenSearch 보안그룹 ID"
+#   value       = module.opensearch.security_group_id
+# }
+
+output "opensearch_log_group_name" {
+  description = "OpenSearch 로그 그룹 이름"
+  value       = module.opensearch.log_group_name
+}
+
 ## 접속 정보 안내
 output "access_info" {
   description = "DVWA 접속 및 관리 정보"
@@ -81,6 +109,5 @@ output "access_info" {
   ========================================
   EOT
 }
-
 
 

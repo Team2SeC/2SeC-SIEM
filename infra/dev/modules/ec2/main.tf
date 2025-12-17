@@ -1,21 +1,9 @@
+# Amazon Linux 2023 AMI (고정값)
+# AMI: Amazon Linux 2023 AMI 2023.9.20251208.0 x86_64 HVM kernel-6.1
+# Region: ap-northeast-2 (Seoul)
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
-}
-
-# 최신 Amazon Linux 2023 AMI 조회
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
+  ami_id      = "ami-0b818a04bc9c2133c"
 }
 
 # Web Server 보안그룹
@@ -60,7 +48,7 @@ resource "aws_security_group" "web" {
 
 # DVWA Web Server EC2 Instance
 resource "aws_instance" "web" {
-  ami                    = data.aws_ami.amazon_linux.id
+  ami                    = local.ami_id
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.web.id]

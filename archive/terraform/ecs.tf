@@ -48,8 +48,22 @@ resource "aws_ecs_task_definition" "logstash" {
         {
           name  = "AWS_REGION"
           value = var.aws_region
+        },
+        # 추가
+        {
+          name  = "PROJECT_NAME"
+          value = var.project_name
+        },
+        {
+          name  = "OPENSEARCH_USERNAME" 
+          value = var.opensearch_username
+        },
+        {
+          name  = "ENVIRONMENT"
+          value = var.environment
         }
       ]
+
 
       logConfiguration = {
         logDriver = "awslogs"

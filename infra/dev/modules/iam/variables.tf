@@ -13,3 +13,9 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "opensearch_admin_user_arns" {
+  description = "OpenSearch Admin Role을 assume할 수 있는 IAM User ARN 리스트"
+  type        = list(string)
+  default     = []
+}

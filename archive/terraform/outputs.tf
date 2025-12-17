@@ -98,6 +98,30 @@ output "ecs_service_name" {
 }
 
 #--------------------------------------------------------------
+# Logstash Outputs (새로 추가) 👈
+#--------------------------------------------------------------
+output "logstash_ecr_repository_url" {
+  description = "ECR repository URL for Logstash custom image"
+  value       = aws_ecr_repository.logstash_custom.repository_url
+}
+
+output "logstash_ecr_repository_name" {
+  description = "ECR repository name for Logstash"
+  value       = aws_ecr_repository.logstash_custom.name
+}
+
+output "logstash_config_info" {
+  description = "Logstash configuration information"
+  value = {
+    dockerfile_path    = "./logstash/Dockerfile"
+    config_path       = "./logstash/config/"
+    logstash_config   = "./logstash/config/logstash.config"
+    logstash_yml      = "./logstash/config/logstash.yml"
+    pipelines_yml     = "./logstash/config/pipelines.yml"
+  }
+}
+
+#--------------------------------------------------------------
 # OpenSearch Outputs
 #--------------------------------------------------------------
 output "opensearch_domain_name" {

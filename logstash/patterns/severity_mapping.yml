@@ -34,7 +34,7 @@ attack_severity:
   # SUSPICIOUS_PATTERN: "info"         # 의심스러운 패턴
   # RECONNAISSANCE: "info"             # 정찰 활동
 
-# 심각도 레벨 정의 (숫자가 클수록 위험)
+# 심각도 레벨 정의 (숫자가 클수록 위험) - 피드백 참고하여 수정 예정
 severity_levels:
   info: 1          # 정보성 - 참고용
   low: 2           # 낮은 위험 - 모니터링 필요

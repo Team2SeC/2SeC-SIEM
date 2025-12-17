@@ -1,12 +1,12 @@
 name: Terraform Apply (infra dev)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "infra/dev/**"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "apply" to confirm infrastructure deployment'
+        required: true
+        default: 'apply'
 
 permissions:
   id-token: write
@@ -21,6 +21,15 @@ jobs:
         working-directory: infra/dev
 
     steps:
+      - name: Validate manual confirmation
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "apply" ]; then
+            echo "❌ Manual confirmation failed. You must type 'apply' to proceed."
+            exit 1
+          fi
+          echo "✅ Manual confirmation received. Proceeding with apply..."
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -37,6 +46,13 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -backend-config="env/dev.backend.hcl"
+
+      - name: Remove Service Linked Role from State (if exists)
+        run: |
+          # Service Linked Role은 Terraform으로 관리하지 않으므로 state에서 제거
+          # 실제 AWS 리소스는 삭제하지 않고 Terraform 관리에서만 제외
+          terraform state rm module.opensearch.aws_iam_service_linked_role.opensearch 2>/dev/null || true
+        continue-on-error: true
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -var-file="env/dev.tfvars"

@@ -11,10 +11,6 @@ jobs:
   plan:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: infra/dev
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -31,9 +27,11 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: Terraform Init
+        working-directory: infra/dev
         run: terraform init -backend-config="env/dev.backend.hcl"
 
       - name: Remove Service Linked Role from State (if exists)
+        working-directory: infra/dev
         run: |
           # Service Linked Role은 Terraform으로 관리하지 않으므로 state에서 제거
           # 실제 AWS 리소스는 삭제하지 않고 Terraform 관리에서만 제외
@@ -41,12 +39,15 @@ jobs:
         continue-on-error: true
 
       - name: Terraform Format Check
+        working-directory: infra/dev
         run: terraform fmt -check
 
       - name: Terraform Validate
+        working-directory: infra/dev
         run: terraform validate
 
       - name: Terraform Plan
+        working-directory: infra/dev
         run: terraform plan -no-color -var-file="env/dev.tfvars"
 
 

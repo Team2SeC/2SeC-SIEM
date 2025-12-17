@@ -121,9 +121,9 @@ resource "aws_iam_role_policy_attachment" "github_actions_tf_backend" {
   policy_arn = aws_iam_policy.github_actions_tf_backend.arn
 }
 
-# IAM(EC2 Role/Instance Profile) 및 CloudWatch Logs(DVWA 로그 그룹) 관리를 위한 최소 권한 부여
+# IAM(EC2/ECS/OpenSearch Role) 및 CloudWatch Logs 관리를 위한 최소 권한 부여
 data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
-  # EC2용 IAM Role 및 Instance Profile 생성/관리
+  # EC2, ECS, OpenSearch용 IAM Role 및 Instance Profile 생성/관리
   statement {
     effect = "Allow"
 
@@ -153,10 +153,12 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-ec2-role",
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.project_name}-${var.environment}-ec2-profile",
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-cw-to-kinesis",
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-logstash-*-role",
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-opensearch-admin-role",
     ]
   }
 
-  # DVWA용 CloudWatch Logs 그룹(/aws/ec2/dvwa-web-server) 관리
+  # 프로젝트 관련 CloudWatch Logs 그룹 관리 (DVWA, Logstash, OpenSearch)
   statement {
     effect = "Allow"
 
@@ -177,6 +179,9 @@ data "aws_iam_policy_document" "github_actions_iam_cloudwatch" {
     resources = [
       "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/dvwa-web-server",
       "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ec2/dvwa-web-server:*",
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/${var.project_name}/${var.environment}/logstash",
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/${var.project_name}/${var.environment}/logstash:*",
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/opensearch/*",
     ]
   }
 
@@ -325,6 +330,67 @@ resource "aws_iam_policy" "github_actions_ecr_ecs" {
 resource "aws_iam_role_policy_attachment" "github_actions_ecr_ecs" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_actions_ecr_ecs.arn
+}
+
+# OpenSearch 도메인 관리를 위한 최소 권한 정책
+data "aws_iam_policy_document" "github_actions_opensearch" {
+  # OpenSearch 도메인 생성/수정/삭제/조회
+  statement {
+    effect = "Allow"
+    actions = [
+      "es:CreateDomain",
+      "es:DeleteDomain",
+      "es:DescribeDomain",
+      "es:UpdateDomain",
+      "es:UpdateDomainConfig",
+      "es:AddTags",
+      "es:RemoveTags",
+      "es:ListTags",
+      "es:ListDomainNames",
+      "es:DescribeElasticsearchDomainConfig",
+      "es:ESHttpGet",
+      "es:ESHttpPost",
+      "es:ESHttpPut"
+    ]
+    resources = [
+      "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/siem-*"
+    ]
+  }
+
+  # Service Linked Role 조회 (OpenSearch가 내부적으로 사용, 계정당 1회만 생성되므로 별도 관리)
+  # 첫 OpenSearch 도메인 생성 시 AWS가 자동으로 생성하거나, 수동으로 생성 필요:
+  # aws iam create-service-linked-role --aws-service-name opensearchservice.amazonaws.com
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:GetRole"
+    ]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/opensearchservice.amazonaws.com/*"
+    ]
+  }
+
+  # CloudWatch Logs Resource Policy (OpenSearch가 로그를 게시하기 위해 필요)
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:PutResourcePolicy",
+      "logs:DeleteResourcePolicy",
+      "logs:DescribeResourcePolicies"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "github_actions_opensearch" {
+  name        = "${var.project_name}-github-actions-opensearch"
+  description = "infra/dev OpenSearch 도메인 관리를 위한 권한 정책"
+  policy      = data.aws_iam_policy_document.github_actions_opensearch.json
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_opensearch" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_opensearch.arn
 }
 
 # CI Role이 자기 자신(github-actions-terraform-role)에 대한 IAM 변경을 하지 못하도록 명시적 Deny 정책 추가

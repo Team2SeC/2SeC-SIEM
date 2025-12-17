@@ -1,0 +1,423 @@
+#==============================================================================
+# 2SeC SIEM - Attack Pattern Database
+# 웹 애플리케이션 공격 탐지 패턴 정의
+#==============================================================================
+
+# 메타데이터
+metadata:
+  version: "1.0.0"
+  description: "Web application attack detection patterns for SIEM"
+  author: "2SeC SIEM Team"
+
+# 글로벌 설정
+global_config:
+  case_sensitive: false                    # 대소문자 구분 안함
+  max_patterns_per_message: 10             # 하나의 로그에서 최대 탐지 개수 : 모든 패턴 탐지를 위해 -1로 설정하려 했으나 성능 문제가 발생할 것 같아 10개로 제한 + 심각도 순서 정렬 반영
+  priority_mode: "severity_first"           # critical 발견하면 중단
+  enable_multi_attack_detection: true      # 다중 공격 탐지 허용
+
+# 공격 패턴 정의
+attack_patterns:
+  
+  #---------------------------------------------------------------------------
+  # SQL Injection 공격 탐지
+  #---------------------------------------------------------------------------
+  SQL_INJECTION:
+    enabled: true   # 탐지 활성화 
+    description: "SQL 인젝션 공격 탐지"
+    
+    techniques:
+      # Union 기반 SQL 인젝션
+      union_based:
+        description: "UNION SELECT를 이용한 SQL 인젝션"
+        patterns:
+          - "union\\s+select"
+          - "union\\s+all\\s+select"
+          - "\\bunion\\b.*\\bselect\\b"
+          - "\\+union\\+select"           # URL 인코딩: +union+select
+          - "%20union%20select"           # URL 인코딩: %20union%20select
+          - "/\\*.*\\*/union/\\*.*\\*/select" # 주석 우회: /**/union/**/select
+
+        
+      # 시간 기반 블라인드 SQL 인젝션
+      time_based:
+        description: "시간 지연을 이용한 블라인드 SQL 인젝션"
+        patterns:
+          - "sleep\\s*\\("
+          - "benchmark\\s*\\("
+          - "waitfor\\s+delay"
+          - "pg_sleep\\s*\\("
+          
+      # 불린 기반 블라인드 SQL 인젝션  
+      boolean_based:
+        description: "참/거짓을 이용한 블라인드 SQL 인젝션"
+        patterns:
+          - "'\\s*or\\s*'1'\\s*=\\s*'1"
+          - "'\\s*or\\s*1\\s*=\\s*1"
+          - "admin'\\s*--"
+          - "'\\s*or\\s*'a'\\s*=\\s*'a"
+          
+      # 에러 기반 SQL 인젝션
+      error_based:
+        description: "데이터베이스 오류를 이용한 정보 획득"
+        patterns:
+          - "extractvalue\\s*\\("
+          - "updatexml\\s*\\("
+          - "cast\\s*\\(.*\\bas\\s"
+          
+      # Stacked Queries
+      stacked_queries:
+        description: "다중 쿼리 실행"
+        patterns:
+          - ";\\s*drop\\s+table"
+          - ";\\s*insert\\s+into"  
+          - ";\\s*delete\\s+from"
+          - ";\\s*update\\s+.*\\s+set"
+
+  #---------------------------------------------------------------------------  
+  # Cross-Site Scripting (XSS) 공격 탐지
+  #---------------------------------------------------------------------------
+  XSS:
+    enabled: true
+    description: "크로스 사이트 스크립팅 공격 탐지"
+    
+    techniques:
+      # Stored XSS
+      stored:
+        description: "저장형 XSS"
+        patterns:
+          - "<script[^>]*>"
+          - "<iframe[^>]*>"
+          - "<object[^>]*>"
+          - "<embed[^>]*>"
+          - "<video[^>]*>"        
+          - "<audio[^>]*>"       
+          - "<source[^>]*>"      
+          - "<svg[^>]*>"
+          
+      # Reflected XSS
+      reflected:
+        description: "반사형 XSS"
+        patterns:
+          - "javascript:"
+          - "vbscript:"
+          - "onload\\s*="
+          - "onerror\\s*="
+          - "onclick\\s*="
+          - "onmouseover\\s*="
+          - "onfocus\\s*="       
+          - "onblur\\s*="         
+          - "onchange\\s*="       
+          - "onsubmit\\s*="       
+          - "onkeydown\\s*="      
+          
+      # DOM 기반 XSS
+      dom_based:
+        description: "DOM 기반 XSS"
+        patterns:
+          - "document\\.cookie"
+          - "document\\.write\\s*\\("
+          - "innerHTML\\s*="
+          - "eval\\s*\\("
+          - "setTimeout\\s*\\("
+          
+      # 필터 우회
+      filter_bypass:
+        description: "XSS 필터 우회 시도"
+        patterns:
+          - "\\\\x[0-9a-f]{2}"
+          - "%3cscript"
+          - "\\u[0-9a-f]{4}"
+          - "String\\.fromCharCode"
+          - "atob\\s*\\("         # Base64 디코딩 우회
+          - "unescape\\s*\\("     # URL 디코딩 우회  
+          - "&#x[0-9a-f]+;"       # HTML 엔티티 우회 &#x3c;
+          - "&#[0-9]+;"           # 십진수 HTML 엔티티 &#60;
+
+      css_injection:
+        description: "CSS를 통한 XSS"
+        patterns:
+          - "expression\\s*\\("   # IE CSS expression
+          - "javascript\\s*:"     # CSS에서 javascript 프로토콜
+          - "behavior\\s*:"       # IE CSS behavior
+          - "@import.*javascript" # CSS import로 JS 로드
+
+  #---------------------------------------------------------------------------
+  # Directory Traversal / Path Traversal 공격 탐지
+  #---------------------------------------------------------------------------
+  DIRECTORY_TRAVERSAL:
+    enabled: true
+    description: "디렉토리 트래버설 공격 탐지"
+    
+    techniques:
+      # 기본 디렉토리 트래버설
+      basic_traversal:
+        description: "기본 디렉토리 트래버설"
+        patterns:
+          - "\\.\\.[\\/\\\\]"
+          - "\\.\\.\\.[\\/\\\\]"
+          - "\\.\\.%2f"
+          - "\\.\\.%5c"
+          
+      # 인코딩된 경로 트래버설
+      encoded_traversal:
+        description: "인코딩을 이용한 경로 트래버설"
+        patterns:
+          - "%2e%2e%2f"
+          - "%2e%2e%5c"
+          - "%c0%af"
+          - "%252e%252e%252f"
+          
+      # 민감한 파일 접근 시도
+      file_access:
+        description: "시스템 파일 접근 시도"
+        patterns:
+          - "/etc/passwd"
+          - "/etc/shadow"
+          - "/windows/system32"
+          - "boot\\.ini"
+          - "web\\.config"
+          - "/proc/self/environ"      # 환경변수 노출
+          - "/var/log/apache2/access.log"  # 로그 파일  
+          - "application\\.properties"     # 스프링 설정
+          - "\\.env"                       # 환경변수 파일
+          - "wp-config\\.php"             # 워드프레스 설정
+
+  #---------------------------------------------------------------------------
+  # Command Injection 공격 탐지  
+  #---------------------------------------------------------------------------
+  COMMAND_INJECTION:
+    enabled: true
+    description: "커맨드 인젝션 공격 탐지"
+    
+    techniques:
+      # 쉘 메타 문자 인젝션
+      shell_metacharacters:
+        description: "쉘 메타 문자를 이용한 인젝션"
+        patterns:
+          - ";\\s*(ls|dir|cat|type)\\b"
+          - "\\|\\s*(ls|dir|cat|type)\\b"
+          - "&\\s*(ls|dir|cat|type)\\b"
+          - "&&\\s*(ls|dir|cat|type)\\b"
+          
+      # 커맨드 실행 시도
+      command_execution:
+        description: "시스템 커맨드 실행 시도"
+        patterns:
+          - "\\$\\([^)]+\\)"
+          - "`[^`]+`"
+          - "\\bwhoami\\b"
+          - "\\bid\\b"
+          - "\\buname\\b"
+          
+      # 네트워크 관련 커맨드
+      network_commands:
+        description: "네트워크 관련 커맨드"
+        patterns:
+          - "wget\\s+"
+          - "curl\\s+"
+          - "nc\\s+-l"
+          - "netcat\\s+"
+          - "telnet\\s+"
+
+      # 권한 상승
+      privilege_escalation:
+        description: "권한 상승 시도"
+        patterns:
+          - "sudo\\s+"                # sudo 명령어
+          - "su\\s+-"                 # 사용자 전환
+          - "chmod\\s+777"            # 권한 변경
+    
+      # 지속성 확보
+      persistence:
+        description: "지속성 확보"  
+        patterns:
+          - "crontab\\s+"             # 스케줄 작업 등록
+          - "service\\s+"             # 서비스 조작
+          - "systemctl\\s+"           # systemd 서비스 조작
+
+  #---------------------------------------------------------------------------
+  # Server-Side Request Forgery (SSRF) 공격 탐지
+  #---------------------------------------------------------------------------
+  SSRF:
+    enabled: true
+    description: "서버 사이드 요청 위조 공격 탐지"
+    
+    techniques:
+      # 내부 네트워크 스캔
+      internal_network:
+        description: "내부 네트워크 및 서비스 스캔 시도"
+        patterns:
+          - "127\\.0\\.0\\.1"
+          - "localhost"
+          - "0\\.0\\.0\\.0"
+          - "\\[::\\]"                    # IPv6 localhost
+          - "0x7f000001"                  # 16진수 localhost
+          - "2130706433"                  # 10진수 localhost
+          
+      # 사설망 IP 스캔
+      private_networks:
+        description: "사설 네트워크 대역 스캔"
+        patterns:
+          - "192\\.168\\."
+          - "10\\."
+          - "172\\.(1[6-9]|2[0-9]|3[0-1])\\."
+          - "169\\.254\\."               # Link-local
+          
+      # 클라우드 메타데이터 접근
+      cloud_metadata:
+        description: "클라우드 메타데이터 서비스 접근 시도"
+        patterns:
+          - "169\\.254\\.169\\.254"      # AWS/Azure/GCP 메타데이터
+          - "/latest/meta-data"          # AWS 메타데이터 경로
+          - "/computeMetadata"           # GCP 메타데이터
+          - "/metadata/instance"         # Azure 메타데이터
+          
+      # 프로토콜 및 스킴 악용
+      protocol_abuse:
+        description: "다양한 프로토콜을 통한 SSRF"
+        patterns:
+          - "file://"
+          - "ftp://"
+          - "dict://"
+          - "ldap://"
+          - "gopher://"
+          - "jar://"
+          
+      # URL 우회 기법
+      bypass_techniques:
+        description: "SSRF 필터 우회 기법"
+        patterns:
+          - "@127\\.0\\.0\\.1"           # user:pass@127.0.0.1
+          - "\\\\127\\.0\\.0\\.1"        # UNC 경로
+          - "%31%32%37%2e%30%2e%30%2e%31" # URL 인코딩 127.0.0.1
+          - "127。0。0。1"                # 유니코드 점 문자
+
+  #---------------------------------------------------------------------------
+  # Cross-Site Request Forgery (CSRF) 공격 탐지
+  #---------------------------------------------------------------------------
+  CSRF:
+    enabled: true
+    description: "크로스 사이트 요청 위조 공격 탐지"
+    
+    techniques:
+      # 자동 폼 제출
+      auto_submit:
+        description: "자동 폼 제출을 통한 CSRF"
+        patterns:
+          - "document\\.forms\\[.*\\]\\.submit\\(\\)"
+          - "form\\.submit\\(\\)"
+          - "autosubmit"
+          - "onload.*submit"
+          
+      # 숨겨진 iframe 공격
+      hidden_iframe:
+        description: "숨겨진 iframe을 통한 CSRF"
+        patterns:
+          - "<iframe[^>]*style[^>]*display\\s*:\\s*none"
+          - "<iframe[^>]*hidden"
+          - "<iframe[^>]*width\\s*=\\s*[\"']?0[\"']?"
+          - "<iframe[^>]*height\\s*=\\s*[\"']?0[\"']?"
+          
+      # 이미지를 통한 GET 요청 CSRF
+      image_csrf:
+        description: "이미지 태그를 통한 GET 요청 CSRF"
+        patterns:
+          - "<img[^>]*src[^>]*\\?.*action\\s*="
+          - "<img[^>]*src[^>]*\\?.*delete"
+          - "<img[^>]*src[^>]*\\?.*modify"
+          - "<img[^>]*src[^>]*\\?.*transfer"
+          
+      # JavaScript 기반 CSRF
+      javascript_csrf:
+        description: "JavaScript를 통한 동적 CSRF"
+        patterns:
+          - "XMLHttpRequest.*POST"
+          - "fetch\\s*\\([^)]*method\\s*:\\s*[\"']POST[\"']"
+          - "\\.post\\s*\\("
+          - "jQuery\\.post"
+          
+      # 민감한 행동 패턴
+      sensitive_actions:
+        description: "CSRF로 악용 가능한 민감한 행동"
+        patterns:
+          - "action\\s*=\\s*[\"'][^\"']*delete"
+          - "action\\s*=\\s*[\"'][^\"']*transfer"
+          - "action\\s*=\\s*[\"'][^\"']*password"
+          - "action\\s*=\\s*[\"'][^\"']*admin"
+          - "\\?.*transfer.*amount"
+          - "\\?.*delete.*user"
+
+  #---------------------------------------------------------------------------
+  # XML External Entity (XXE) 공격 탐지 
+  #---------------------------------------------------------------------------
+  XXE:
+    enabled: true
+    description: "XML 외부 엔티티 공격 탐지"
+    
+    techniques:
+      # 기본 XXE 패턴
+      basic_xxe:
+        description: "기본 XXE 공격 패턴"
+        patterns:
+          - "<!ENTITY.*SYSTEM"
+          - "<!ENTITY.*PUBLIC"
+          - "&[a-zA-Z][a-zA-Z0-9]*;"
+          
+      # 파일 읽기 시도
+      file_disclosure:
+        description: "XXE를 통한 파일 읽기 시도"
+        patterns:
+          - "SYSTEM\\s+[\"']file://"
+          - "SYSTEM\\s+[\"'][^\"']*\\/etc\\/"
+          - "SYSTEM\\s+[\"'][^\"']*\\/windows\\/"
+          
+      # OOB XXE (Out-of-Band)
+      oob_xxe:
+        description: "대역 외 XXE 공격"
+        patterns:
+          - "SYSTEM\\s+[\"']https?://"
+          - "SYSTEM\\s+[\"']ftp://"
+          - "<!ENTITY.*%.*SYSTEM"
+
+  #---------------------------------------------------------------------------
+  # HTTP Request Smuggling 공격 탐지 (고급)
+  #---------------------------------------------------------------------------
+  HTTP_REQUEST_SMUGGLING:
+    enabled: true
+    description: "HTTP 요청 스머글링 공격 탐지"
+    
+    techniques:
+      # Content-Length vs Transfer-Encoding 불일치
+      cl_te_desync:
+        description: "CL.TE 디싱크 공격"
+        patterns:
+          - "Transfer-Encoding:\\s*chunked.*Content-Length:"
+          - "Content-Length:.*Transfer-Encoding:\\s*chunked"
+          
+      # 중복 헤더
+      duplicate_headers:
+        description: "중복 HTTP 헤더를 통한 스머글링"
+        patterns:
+          - "Content-Length:.*Content-Length:"
+          - "Transfer-Encoding:.*Transfer-Encoding:"
+          
+      # 청크 인코딩 조작
+      chunk_manipulation:
+        description: "청크 인코딩 조작"
+        patterns:
+          - "\\r\\n0\\r\\n\\r\\n"        # 청크 종료 시퀀스
+          - "Transfer-Encoding:\\s*identity"
+          - "Transfer-Encoding:\\s*gzip.*chunked"
+
+# 화이트리스트 (오탐 방지) 
+whitelist:
+  # IP 주소 범위 (내부 네트워크)
+  ip_ranges:
+    - "127.0.0.1/32"        
+    - "${VPC_CIDR_BLOCK:-10.0.0.0/24}"  # Private Subnet
+
+  # 로컬호스트도 특정 패턴은 검사
+  # localhost_exceptions:
+  #   always_check_for: ["union select", "script", "cmd="]
+  #  로컬 API를 악용해서 공격할 수 있지 않나? 라는 생각이 들긴 했는데 후에 미탐되면 고려할 예정 (rb 파일도 복잡해지는 것 같고 화이트리스트를 한 의미가 없어지는 것 같음 )

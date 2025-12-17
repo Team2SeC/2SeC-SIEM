@@ -34,7 +34,8 @@ class AttackPatternMatcher
     @last_pattern_modified = nil
     @last_severity_modified = nil
     @last_config_check = Time.now
-    
+
+    @next_config_check = Time.now + CONFIG_CHECK_INTERVAL  # ✨ 미리 계산!
     load_configurations     # 실제 파일 읽기 및 초기화
   end
   
@@ -174,9 +175,11 @@ class AttackPatternMatcher
   #---------------------------------------------------------------------------
   
   def detect_attacks(message, source_ip = nil)
-    # 30초마다만 설정 파일 변경 확인
-    check_configurations if Time.now - @last_config_check > CONFIG_CHECK_INTERVAL
-    
+      # ⚡ Early Exit: 단순 비교만
+    if Time.now > @next_config_check
+      check_configurations_and_update_timer
+    end
+     
     # 입력 검증
     return [] if message.nil? || message.strip.empty?
     

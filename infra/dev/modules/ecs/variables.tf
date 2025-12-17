@@ -79,21 +79,9 @@ variable "log_retention_days" {
   default     = 7
 }
 
-variable "opensearch_endpoint" {
-  type = string
-}
-
-variable "opensearch_username" {
-  type = string
-}
-
-variable "opensearch_password" {
-  type = string
-}
-
-variable "opensearch_index_prefix" {
-  type    = string
-  default = "dvwa"
+variable "opensearch_host" {
+  description = "Logstash가 접속할 OpenSearch 도메인 호스트 (https:// 없이 도메인만, 예: vpc-xxx.ap-northeast-2.es.amazonaws.com)"
+  type        = string
 }
 
 

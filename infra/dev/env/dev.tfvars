@@ -11,7 +11,10 @@ logstash_image_tag = "latest"
 # - Kinesis 체크포인트/소비자 그룹 식별자
 logstash_kcl_application_name = "2sec-dev-logstash"
 
-opensearch_endpoint       = "https://vpc-siem-2sec-dev-...ap-northeast-2.es.amazonaws.com"
-opensearch_username       = "admin"
-opensearch_password       = "<비밀번호>"
-opensearch_index_prefix   = "dvwa"
+opensearch_admin_iam_principals = [
+  "arn:aws:iam::839444048443:user/admin-01",
+  "arn:aws:iam::839444048443:user/admin-02",
+  "arn:aws:iam::839444048443:user/admin-03",
+  "arn:aws:iam::839444048443:user/admin-04",
+  "arn:aws:iam::839444048443:user/admin-05",
+]

@@ -28,4 +28,9 @@ output "logstash_log_group_name" {
   value       = aws_cloudwatch_log_group.logstash.name
 }
 
+output "logstash_task_role_arn" {
+  description = "Logstash ECS 태스크 Role ARN (OpenSearch 도메인 리소스 정책 등에 사용)"
+  value       = aws_iam_role.task.arn
+}
+
 

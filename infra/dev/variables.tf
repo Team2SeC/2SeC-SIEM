@@ -32,33 +32,11 @@ variable "logstash_kcl_application_name" {
   description = "Logstash Kinesis 소비자 그룹(KCL application_name)"
 }
 
-variable "opensearch_endpoint" {
-  type        = string
-  description = "Logstash가 쓸 OpenSearch 엔드포인트(https://...)"
-}
-
-variable "opensearch_username" {
-  type        = string
-  description = "OpenSearch 기본 인증 사용자 이름"
-}
-
-variable "opensearch_password" {
-  type        = string
-  description = "OpenSearch 기본 인증 사용자 비밀번호"
-  sensitive   = true
-}
-
-variable "opensearch_index_prefix" {
-  type        = string
-  description = "OpenSearch 인덱스 prefix (예: dvwa)"
-  default     = "dvwa"
-}
-
 # OpenSearch
 variable "opensearch_engine_version" {
   type        = string
   description = "OpenSearch 엔진 버전 (예: OpenSearch_2.11)"
-  default     = "OpenSearch_2.11"
+  default     = "OpenSearch_3.3"
 }
 
 variable "opensearch_instance_type" {
@@ -85,13 +63,23 @@ variable "opensearch_log_retention_days" {
   default     = 7
 }
 
-variable "opensearch_allowed_cidr_blocks" {
-  type        = list(string)
-  description = "OpenSearch에 접근 허용할 CIDR 목록 (미지정 시 VPC CIDR 사용)"
-  default     = null
-}
+// opensearch_allowed_cidr_blocks 는 VPC 내부 도메인을 사용할 때만 의미가 있었으나,
+// 현재 구성에서는 Public 도메인을 사용하므로 더 이상 사용하지 않음 (보존 주석)
+// variable "opensearch_allowed_cidr_blocks" {
+//   type        = list(string)
+//   description = "OpenSearch에 접근 허용할 CIDR 목록 (미지정 시 VPC CIDR 사용)"
+//   default     = null
+// }
 
-variable "opensearch_master_user_arn" {
-  type        = string
-  description = "IAM 기반 OpenSearch 마스터 사용자 ARN"
+// opensearch_master_user_arn은 더 이상 사용하지 않음
+# IAM 모듈에서 생성한 opensearch_admin_role_arn을 자동으로 사용
+# variable "opensearch_master_user_arn" {
+#   type        = string
+#   description = "IAM 기반 OpenSearch 마스터 사용자 ARN"
+# }
+
+variable "opensearch_admin_iam_principals" {
+  type        = list(string)
+  description = "OpenSearch Dashboards에 접근할 수 있는 Admin IAM 주체 ARN 리스트 (IAM User 또는 Role ARN)"
+  default     = []
 }

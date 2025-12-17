@@ -68,10 +68,12 @@ output "opensearch_dashboard_endpoint" {
   value       = module.opensearch.dashboard_endpoint
 }
 
-output "opensearch_security_group_id" {
-  description = "OpenSearch 보안그룹 ID"
-  value       = module.opensearch.security_group_id
-}
+## OpenSearch SG 출력 (VPC 전용 도메인에서만 사용)
+# 현재는 Public 도메인을 사용하고, Security Group을 생성하지 않으므로 비활성화
+# output "opensearch_security_group_id" {
+#   description = "OpenSearch 보안그룹 ID"
+#   value       = module.opensearch.security_group_id
+# }
 
 output "opensearch_log_group_name" {
   description = "OpenSearch 로그 그룹 이름"

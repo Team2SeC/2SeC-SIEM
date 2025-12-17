@@ -6,41 +6,12 @@ locals {
     0,
     28
   )
-  allowed_cidrs = var.allowed_cidr_blocks != null ? var.allowed_cidr_blocks : [var.vpc_cidr_block]
 }
 
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_service_linked_role" "opensearch" {
   aws_service_name = "opensearchservice.amazonaws.com"
-}
-
-resource "aws_security_group" "opensearch" {
-  name        = "${local.name_prefix}-opensearch-sg"
-  description = "Security group for OpenSearch domain"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "HTTPS access to OpenSearch"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = local.allowed_cidrs
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(
-    var.common_tags,
-    {
-      Name = "${local.name_prefix}-opensearch-sg"
-    }
-  )
 }
 
 resource "aws_cloudwatch_log_group" "opensearch_logs" {
@@ -95,11 +66,6 @@ resource "aws_opensearch_domain" "this" {
     iops        = 3000
   }
 
-  vpc_options {
-    subnet_ids         = var.subnet_ids
-    security_group_ids = [aws_security_group.opensearch.id]
-  }
-
   encrypt_at_rest {
     enabled = true
   }
@@ -127,8 +93,14 @@ resource "aws_opensearch_domain" "this" {
     Statement = [
       {
         Effect    = "Allow"
-        Principal = { AWS = data.aws_caller_identity.current.arn }
-        Action    = "es:*"
+        # OpenSearch HTTP(Data plane)에 접근할 수 있는 IAM 주체들 (Logstash 태스크 Role + Admin Role/User 등)
+        Principal = { AWS = distinct(concat(var.additional_iam_principals, [var.master_user_arn])) }
+        # OpenSearch 도메인 HTTP(Data plane) 호출만 허용 (관리 작업은 IAM 정책으로 제어)
+        Action = [
+          "es:ESHttpGet",
+          "es:ESHttpPost",
+          "es:ESHttpPut"
+        ]
         Resource  = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
       }
     ]
@@ -156,3 +128,58 @@ resource "aws_opensearch_domain" "this" {
     aws_cloudwatch_log_resource_policy.opensearch
   ]
 }
+
+#############################################
+## (참고용) VPC 내부 전용 OpenSearch 예전 구성
+## - 현재는 Public 도메인을 사용하므로 비활성화 상태
+## - 나중에 VPC 전용으로 되돌리고 싶을 때 참고용으로 남겨둠
+#############################################
+#
+# locals {
+#   name_prefix = "${var.project_name}-${var.environment}"
+#   # 단순 치환으로 domain_name 길이/문자 제한 만족 (공백/언더스코어는 하이픈으로)
+#   domain_name = substr(
+#     lower("siem-${replace(replace(var.project_name, " ", "-"), "_", "-")}-${var.environment}"),
+#     0,
+#     28
+#   )
+#   allowed_cidrs = var.allowed_cidr_blocks != null ? var.allowed_cidr_blocks : [var.vpc_cidr_block]
+# }
+#
+# resource "aws_security_group" "opensearch" {
+#   name        = "${local.name_prefix}-opensearch-sg"
+#   description = "Security group for OpenSearch domain"
+#   vpc_id      = var.vpc_id
+#
+#   ingress {
+#     description = "HTTPS access to OpenSearch"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = local.allowed_cidrs
+#   }
+#
+#   egress {
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#
+#   tags = merge(
+#     var.common_tags,
+#     {
+#       Name = "${local.name_prefix}-opensearch-sg"
+#     }
+#   )
+# }
+#
+# resource "aws_opensearch_domain" "this" {
+#   ...
+#   vpc_options {
+#     subnet_ids         = var.subnet_ids
+#     security_group_ids = [aws_security_group.opensearch.id]
+#   }
+#   ...
+# }
+

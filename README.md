@@ -15,7 +15,7 @@ IaC 기반 AWS 인프라 위에 웹 서비스(DVWA/Juice Shop)를 구성하고, 
 	5.	실제 공격 로그 기반 보안 모니터링 경험 확보
 
 2차 확장 목표로는 다음을 고려합니다.
-	•	LLM 기반 SOAR 기능 PoC
+	•	LLM 기반 SOAR 기능 구현
 	•	Threat Intelligence(CTI) 연동 및 탐지 품질 향상
 
 사용 기술 및 도구

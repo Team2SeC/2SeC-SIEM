@@ -27,10 +27,12 @@ COPY --chown=logstash:logstash --chmod=644 config/logstash.config /usr/share/log
 COPY --chown=logstash:logstash --chmod=644 config/logstash.yml /usr/share/logstash/config/
 COPY --chown=logstash:logstash --chmod=644 config/pipelines.yml /usr/share/logstash/config/
 
+RUN mkdir -p /usr/share/logstash/config/patterns
+
 # 추가한게 반영이 안 돼서 설정 복사 추가
-COPY --chown=logstash:logstash --chmod=644 config/patterns/attack_patterns.yml /usr/share/logstash/config/patterns/
-COPY --chown=logstash:logstash --chmod=644 config/patterns/patterns_matcher.rb /usr/share/logstash/config/patterns/
-COPY --chown=logstash:logstash --chmod=644 config/patterns/severity_mapping.yml /usr/share/logstash/config/patterns/
+COPY --chown=logstash:logstash --chmod=644 patterns/attack_patterns.yml /usr/share/logstash/config/patterns/
+COPY --chown=logstash:logstash --chmod=644 patterns/patterns_matcher.rb /usr/share/logstash/config/patterns/
+COPY --chown=logstash:logstash --chmod=644 patterns/severity_mapping.yml /usr/share/logstash/config/patterns/
 
 # 런타임은 logstash 유저로
 USER logstash

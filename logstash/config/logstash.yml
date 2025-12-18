@@ -12,4 +12,3 @@ log.format: json
 
 # 성능 최적화 - ECS 메모리 제한 환경용
 dead_letter_queue.enable: false    # 디스크 I/O 제거로 성능 향상
-monitoring.enabled: false          # 불필요한 네트워크 트래픽 제거

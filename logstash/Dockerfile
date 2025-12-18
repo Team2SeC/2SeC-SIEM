@@ -2,7 +2,7 @@
 # 2SeC SIEM - Logstash (OpenSearch native)
 #==============================================================================
 
-FROM opensearchproject/logstash-oss-with-opensearch-output-plugin:8.11.0
+FROM opensearchproject/logstash-oss-with-opensearch-output-plugin:7.16.3
 
 LABEL org.opencontainers.image.authors="2SeC SIEM Team"
 LABEL org.opencontainers.image.version="1.0.2"

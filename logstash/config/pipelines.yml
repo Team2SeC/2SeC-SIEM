@@ -19,5 +19,3 @@
 
     # 🔥 추가 최적화 (파이프라인별만 적용)
   pipeline.ordered: false           # 순서 < 성능
-  # pipeline.output_workers: 1        # 출력 워커 전용
-  

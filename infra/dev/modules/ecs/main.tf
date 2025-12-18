@@ -125,6 +125,7 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
         Sid    = "AllowDynamoDBCheckpoint"
         Effect = "Allow"
         Action = [
+          "dynamodb:ListTables",      # 추가
           "dynamodb:DescribeTable",
           "dynamodb:CreateTable",
           "dynamodb:GetItem",
@@ -134,7 +135,10 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
           "dynamodb:Scan",
           "dynamodb:Query"
         ]
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.kcl_application_name}"
+        Resource = [ 
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.kcl_application_name}",
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/*"  # ← 이것도 추가!
+        ]
       },
       {
         Sid    = "AllowOpenSearchDataPlane"

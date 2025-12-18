@@ -100,7 +100,9 @@ resource "aws_opensearch_domain" "this" {
         Action = [
           "es:ESHttpGet",
           "es:ESHttpPost",
-          "es:ESHttpPut"
+          "es:ESHttpPut",
+          # Logstash/OpenSearch 클라이언트는 템플릿/상태 확인 시 HEAD를 호출하므로 필요
+          "es:ESHttpHead"
         ]
         Resource  = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
       }

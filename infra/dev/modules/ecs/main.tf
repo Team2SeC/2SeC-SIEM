@@ -153,7 +153,8 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
         Action = [
           "es:ESHttpGet",
           "es:ESHttpPost",
-          "es:ESHttpPut"
+          "es:ESHttpPut",
+          "es:ESHttpHead"
         ]
         # opensearch 모듈과 동일한 도메인 네이밍 규칙을 사용하여 ARN 계산
         Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.opensearch_domain_name}/*"

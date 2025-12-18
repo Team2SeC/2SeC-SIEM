@@ -125,8 +125,6 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
         Sid    = "AllowDynamoDBCheckpoint"
         Effect = "Allow"
         Action = [
-          "dynamodb:DescribeTable",
-          "dynamodb:CreateTable",
           "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
@@ -134,7 +132,20 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
           "dynamodb:Scan",
           "dynamodb:Query"
         ]
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.kcl_application_name}"
+        Resource = [ 
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.kcl_application_name}",
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/*"  # ← 이것도 추가!
+        ]
+      },
+      {
+        Sid    = "AllowDynamoDBTableManagement"  # 새로 분리
+        Effect = "Allow" 
+        Action = [
+          "dynamodb:CreateTable",
+          "dynamodb:ListTables",
+          "dynamodb:DescribeTable"  # 이것도 전역 필요
+      ]
+      Resource = "*"  # CreateTable은 전역 권한이 필요
       },
       {
         Sid    = "AllowOpenSearchDataPlane"

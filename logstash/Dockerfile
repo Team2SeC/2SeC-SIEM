@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.version="1.0.2"
 LABEL org.opencontainers.image.description="SIEM pipeline with Kinesis + OpenSearch"
 
 # 필요한 것만 추가 (kinesis input)
-RUN logstash-plugin install -J-Xmx2048m --version 2.3.0 logstash-input-kinesis
+RUN logstash-plugin install -J-Xmx2048m --version 2.1.2 logstash-input-kinesis
 
 # 기본 pipeline 제거
 RUN rm -f /usr/share/logstash/pipeline/logstash.conf

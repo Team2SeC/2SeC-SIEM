@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   type        = string
   description = "프로젝트 공통 prefix (예: project02)."
-  default     = "2sec"    # 대문자때문에 에러가 나는 것 같아 수정
+  default     = "2SeC"   
 }
 
 variable "environment" {

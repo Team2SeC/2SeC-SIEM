@@ -11,7 +11,8 @@ LABEL org.opencontainers.image.version="1.0.1"
 LABEL org.opencontainers.image.description="SIEM pipeline with Kinesis support"
 
 # Kinesis 플러그인 설치 (버전 고정으로 재현성 보장)
-RUN logstash-plugin install --version 2.3.0 logstash-input-kinesis
+RUN logstash-plugin install --version 2.3.0 logstash-input-kinesis \
+    && logstash-plugin install logstash-output-opensearch
 
 # 기본 설정 파일들 제거
 RUN rm -f /usr/share/logstash/pipeline/logstash.conf

@@ -27,14 +27,14 @@ COPY --chown=logstash:logstash --chmod=644 config/logstash.config /usr/share/log
 COPY --chown=logstash:logstash --chmod=644 config/logstash.yml /usr/share/logstash/config/
 COPY --chown=logstash:logstash --chmod=644 config/pipelines.yml /usr/share/logstash/config/
 
-# 추가한게 반영이 안 돼서 설정 복사 추가
-COPY --chown=logstash:logstash --chmod=644 patterns/attack_patterns.yml /usr/share/logstash/patterns/
-COPY --chown=logstash:logstash --chmod=644 patterns/patterns_matcher.rb /usr/share/logstash/patterns/
-COPY --chown=logstash:logstash --chmod=644 patterns/severity_mapping.yml /usr/share/logstash/patterns/
+# # 추가한게 반영이 안 돼서 설정 복사 추가
+# COPY --chown=logstash:logstash --chmod=644 patterns/attack_patterns.yml /usr/share/logstash/patterns/
+# COPY --chown=logstash:logstash --chmod=644 patterns/patterns_matcher.rb /usr/share/logstash/patterns/
+# COPY --chown=logstash:logstash --chmod=644 patterns/severity_mapping.yml /usr/share/logstash/patterns/
 
-RUN chown -R logstash:logstash /usr/share/logstash/patterns \
-    && chmod -R 644 /usr/share/logstash/patterns \
-    && find /usr/share/logstash/patterns -type d -exec chmod 755 {} \;
+# RUN chown -R logstash:logstash /usr/share/logstash/patterns \
+#     && chmod -R 644 /usr/share/logstash/patterns \
+#     && find /usr/share/logstash/patterns -type d -exec chmod 755 {} \;
 
 
 # 런타임은 logstash 유저로

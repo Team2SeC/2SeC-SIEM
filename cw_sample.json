@@ -1,0 +1,13 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "123456789012",
+  "logGroup": "/aws/ec2/dvwa-web-server",
+  "logStream": "i-123/dvwa",
+  "logEvents": [
+    {
+      "id": "event1",
+      "timestamp": 1766123456789,
+      "message": "118.221.42.243 - - [19/Dec/2025:06:50:15 +0000] \"GET /vulnerabilities/xss_r/?name=test HTTP/1.1\" 200 1773"
+    }
+  ]
+}

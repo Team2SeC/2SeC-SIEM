@@ -161,8 +161,30 @@ resource "aws_instance" "web" {
                       -e MYSQL_PASS="password" \
                       vulnerables/web-dvwa
 
-                  # Docker 로그를 파일로 스트리밍 (백그라운드)
-                  nohup sudo docker logs -f dvwa >> /var/log/docker-dvwa.log 2>&1 &
+                  # DVWA 로그 스트리밍 systemd 서비스 등록
+                  sudo tee /etc/systemd/system/dvwa-log-stream.service > /dev/null <<'SVC'
+[Unit]
+Description=Docker Logs Streaming Service for DVWA
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=/usr/bin/touch /var/log/docker-dvwa.log
+ExecStartPre=/usr/bin/chmod 666 /var/log/docker-dvwa.log
+ExecStart=/usr/bin/docker logs -f dvwa
+StandardOutput=append:/var/log/docker-dvwa.log
+StandardError=inherit
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+                  # 서비스 활성화 및 시작
+                  sudo systemctl daemon-reload
+                  sudo systemctl enable dvwa-log-stream
+                  sudo systemctl start dvwa-log-stream
               }
 
               # Public IP 조회

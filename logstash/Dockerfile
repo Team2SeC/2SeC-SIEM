@@ -32,6 +32,11 @@ COPY --chown=logstash:logstash --chmod=644 patterns/attack_patterns.yml /usr/sha
 COPY --chown=logstash:logstash --chmod=644 patterns/patterns_matcher.rb /usr/share/logstash/patterns/
 COPY --chown=logstash:logstash --chmod=644 patterns/severity_mapping.yml /usr/share/logstash/patterns/
 
+RUN chown -R logstash:logstash /usr/share/logstash/patterns \
+    && chmod -R 644 /usr/share/logstash/patterns \
+    && find /usr/share/logstash/patterns -type d -exec chmod 755 {} \;
+
+
 # 런타임은 logstash 유저로
 USER logstash
 

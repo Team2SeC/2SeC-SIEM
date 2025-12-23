@@ -210,7 +210,7 @@ resource "aws_ecs_task_definition" "logstash" {
           name  = "APPLICATION_NAME"
           value = var.kcl_application_name
         },
-                {
+        {
           name  = "OPENSEARCH_HOST"
           value = var.opensearch_host
         }

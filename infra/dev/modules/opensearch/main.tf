@@ -93,7 +93,7 @@ resource "aws_opensearch_domain" "this" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect    = "Allow"
+        Effect = "Allow"
         # OpenSearch HTTP(Data plane)에 접근할 수 있는 IAM 주체들 (Logstash 태스크 Role + Admin Role/User 등)
         Principal = { AWS = distinct(concat(var.additional_iam_principals, [var.master_user_arn])) }
         # OpenSearch 도메인 HTTP(Data plane) 호출 허용 (인덱스 생성, 데이터 쓰기, 읽기, 삭제 등)

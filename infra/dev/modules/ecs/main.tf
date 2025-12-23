@@ -138,14 +138,14 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
         ]
       },
       {
-        Sid    = "AllowDynamoDBTableManagement"  # 새로 분리
-        Effect = "Allow" 
+        Sid    = "AllowDynamoDBTableManagement"
+        Effect = "Allow"
         Action = [
           "dynamodb:CreateTable",
           "dynamodb:ListTables",
-          "dynamodb:DescribeTable"  # 이것도 전역 필요
-      ]
-      Resource = "*"  # CreateTable은 전역 권한이 필요
+          "dynamodb:DescribeTable"
+        ]
+        Resource = "*"
       },
       {
         Sid    = "AllowOpenSearchDataPlane"
@@ -154,7 +154,9 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
           "es:ESHttpGet",
           "es:ESHttpPost",
           "es:ESHttpPut",
-          "es:ESHttpHead"
+          "es:ESHttpDelete",
+          "es:ESHttpHead",
+          "es:ESHttpPatch"
         ]
         # opensearch 모듈과 동일한 도메인 네이밍 규칙을 사용하여 ARN 계산
         Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.opensearch_domain_name}/*"

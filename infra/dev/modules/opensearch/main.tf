@@ -96,13 +96,14 @@ resource "aws_opensearch_domain" "this" {
         Effect    = "Allow"
         # OpenSearch HTTP(Data plane)에 접근할 수 있는 IAM 주체들 (Logstash 태스크 Role + Admin Role/User 등)
         Principal = { AWS = distinct(concat(var.additional_iam_principals, [var.master_user_arn])) }
-        # OpenSearch 도메인 HTTP(Data plane) 호출만 허용 (관리 작업은 IAM 정책으로 제어)
+        # OpenSearch 도메인 HTTP(Data plane) 호출 허용 (인덱스 생성, 데이터 쓰기, 읽기, 삭제 등)
         Action = [
           "es:ESHttpGet",
           "es:ESHttpPost",
           "es:ESHttpPut",
-          # Logstash/OpenSearch 클라이언트는 템플릿/상태 확인 시 HEAD를 호출하므로 필요
-          "es:ESHttpHead"
+          "es:ESHttpDelete",
+          "es:ESHttpHead",
+          "es:ESHttpPatch"
         ]
         Resource  = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
       }
@@ -117,6 +118,16 @@ resource "aws_opensearch_domain" "this" {
   log_publishing_options {
     cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
     log_type                 = "SEARCH_SLOW_LOGS"
+  }
+
+  log_publishing_options {
+    cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
+    log_type                 = "ES_APPLICATION_LOGS"
+  }
+
+  log_publishing_options {
+    cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
+    log_type                 = "AUDIT_LOGS"
   }
 
   tags = merge(

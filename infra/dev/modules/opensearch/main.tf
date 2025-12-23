@@ -105,7 +105,7 @@ resource "aws_opensearch_domain" "this" {
           "es:ESHttpHead",
           "es:ESHttpPatch"
         ]
-        Resource  = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
+        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
       }
     ]
   })

@@ -1,0 +1,27 @@
+#==============================================================================
+# 2SeC SIEM - Logstash Pipelines Configuration  
+# ECS Fargate Optimized (1GB memory, 0.5 vCPU)
+#==============================================================================
+
+# Main SIEM pipeline
+- pipeline.id: "main"
+  path.config: "/usr/share/logstash/pipeline/logstash.config"
+  
+  # Performance settings (현실적 최적화)
+  pipeline.workers: 1
+  pipeline.batch.size: 250                                      # ✅ 125 → 250 (OpenSearch 효율성)
+  pipeline.batch.delay: 100                                     # ✅ 50 → 100 (안정성)
+  
+  # Memory settings (안전 마진 확보)
+  queue.type: memory
+  queue.max_events: 400                                         # ✅ 512 → 400 (여유 확보)
+  queue.max_bytes: 100mb                                        # ✅ 128 → 100 (안전 마진)
+
+  # 🔥 추가 최적화 (파이프라인별만 적용)
+  pipeline.ordered: false           # 순서 < 성능
+  # pipeline.output_workers: 1        # 출력 워커 전용
+
+  # ECS 호환성 명시적 설정 (에러 1-6, 10-11, 15번 해결)
+  pipeline.ecs_compatibility: disabled
+  
+

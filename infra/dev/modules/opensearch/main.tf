@@ -102,8 +102,8 @@ resource "aws_opensearch_domain" "this" {
           "es:ESHttpPost",
           "es:ESHttpPut",
           "es:ESHttpDelete",
-          "es:ESHttpHead",
-          "es:ESHttpPatch"
+          "es:ESHttpPatch",
+          "es:ESHttpHead"
         ]
         Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
       }

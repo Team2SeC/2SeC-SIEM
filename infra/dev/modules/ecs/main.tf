@@ -2,12 +2,6 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
-  # OpenSearch 도메인 이름은 opensearch 모듈과 동일한 규칙을 사용해야 함
-  opensearch_domain_name = substr(
-    lower("siem-${replace(replace(var.project_name, " ", "-"), "_", "-")}-${var.environment}"),
-    0,
-    28
-  )
 }
 
 # ECS Cluster for Logstash
@@ -154,12 +148,12 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
           "es:ESHttpGet",
           "es:ESHttpPost",
           "es:ESHttpPut",
-          "es:ESHttpDelete",
           "es:ESHttpHead",
+          "es:ESHttpDelete",
           "es:ESHttpPatch"
         ]
-        # opensearch 모듈과 동일한 도메인 네이밍 규칙을 사용하여 ARN 계산
-        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.opensearch_domain_name}/*"
+        # opensearch 모듈의 실제 도메인 이름을 사용하여 ARN 계산
+        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${var.opensearch_domain_name}/*"
       }
     ]
   })

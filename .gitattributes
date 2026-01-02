@@ -1,0 +1,9 @@
+# Logstash configuration files
+*.config linguist-language=Ruby
+logstash/config/*.config linguist-language=Ruby
+
+# Detection rules
+*.md linguist-documentation
+
+# JSON detection rules
+detection-rules/*.json linguist-language=JSON

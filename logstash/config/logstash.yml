@@ -1,14 +1,14 @@
-#==============================================================================
-# 2SeC SIEM - Logstash Main Configuration  
-# Optimized for ECS Fargate (1GB memory, 0.5 vCPU)
-#==============================================================================
+node.name: "2sec-logstash-node"
 
-# Node identification - 서버 구분
-node.name: "${HOSTNAME:2sec-logstash-node}"
-
-# 로깅
-log.level: info # 우선 주요 일만 보고되게 
+# 운영 기본 로그 레벨
+log.level: info
 log.format: json
 
-# 성능 최적화 - ECS 메모리 제한 환경용
-dead_letter_queue.enable: false    # 디스크 I/O 제거로 성능 향상
+# 안전한 종료 (ECS SIGTERM 대응)
+pipeline.unsafe_shutdown: false
+
+# ECS 필드 자동 주입 방지
+#ecs_compatibility: disabled
+
+# DLQ 비활성 (Kinesis 재처리 전제)
+dead_letter_queue.enable: false

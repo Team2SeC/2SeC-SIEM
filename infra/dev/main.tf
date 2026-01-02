@@ -117,7 +117,8 @@ module "ecs" {
   kcl_application_name = var.logstash_kcl_application_name
 
   # IAM 기반 접속: 도메인 엔드포인트는 환경 변수(OPENSEARCH_HOST)로만 전달
-  opensearch_host = module.opensearch.domain_endpoint
+  opensearch_host        = module.opensearch.domain_endpoint
+  opensearch_domain_name = module.opensearch.domain_name
 }
 
 

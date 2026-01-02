@@ -84,4 +84,9 @@ variable "opensearch_host" {
   type        = string
 }
 
+variable "opensearch_domain_name" {
+  description = "OpenSearch 도메인 이름 (IAM 정책 ARN 계산용, opensearch 모듈의 domain_name 출력값 사용)"
+  type        = string
+}
+
 

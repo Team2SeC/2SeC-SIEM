@@ -73,10 +73,25 @@ jobs:
       # 선택 사항: ECS Fargate(Logstash) 서비스 롤링 배포까지 같이 하고 싶을 때 사용
       # 인프라가 준비된 후 ECS_CLUSTER / ECS_SERVICE 값을 실제 값으로 수정하세요.
       - name: Trigger ECS rolling deployment
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         run: |
-          aws ecs update-service \
+          # ECS 서비스 존재 여부 확인
+          if aws ecs describe-services \
             --cluster "2SeC-dev-ecs-cluster" \
-            --service "2SeC-dev-logstash" \
-            --force-new-deployment
+            --services "2SeC-dev-logstash" \
+            --region "${AWS_REGION}" \
+            --query 'services[0].status' \
+            --output text 2>/dev/null | grep -q "ACTIVE"; then
+
+            echo "ECS 서비스가 존재합니다. 롤링 배포를 시작합니다..."
+            aws ecs update-service \
+              --cluster "2SeC-dev-ecs-cluster" \
+              --service "2SeC-dev-logstash" \
+              --force-new-deployment
+          else
+            echo "⚠️  ECS 서비스가 아직 생성되지 않았습니다. 배포를 건너뜁니다."
+            echo "인프라 생성 후 이 단계가 자동으로 실행됩니다."
+          fi
 
 

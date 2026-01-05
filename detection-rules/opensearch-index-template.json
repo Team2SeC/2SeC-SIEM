@@ -1,0 +1,88 @@
+{
+  "index_patterns": ["2sec-siem-*"],
+  "template": {
+    "settings": {
+      "index.number_of_shards": 1,
+      "index.refresh_interval": "5s",
+      "index.default_pipeline": "2sec-siem-classification-v1"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "source": {
+          "properties": {
+            "ip": { "type": "ip" },
+            "address": { "type": "keyword" }
+          }
+        },
+        "url": {
+          "properties": {
+            "original": { "type": "keyword" },
+            "path": { "type": "keyword" },
+            "query": {
+              "type": "text",
+              "fields": {
+                "keyword": { "type": "keyword", "ignore_above": 2048 }
+              }
+            }
+          }
+        },
+        "http": {
+          "properties": {
+            "request": {
+              "properties": {
+                "method": { "type": "keyword" }
+              }
+            },
+            "response": {
+              "properties": {
+                "status_code": { "type": "keyword" },
+                "body": {
+                  "properties": {
+                    "bytes": { "type": "long" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "user_agent": {
+          "properties": {
+            "original": {
+              "type": "text",
+              "fields": {
+                "keyword": { "type": "keyword", "ignore_above": 2048 }
+              }
+            }
+          }
+        },
+        "attack": {
+          "properties": {
+            "rule_id": { "type": "keyword" },
+            "type": { "type": "keyword" },
+            "category": { "type": "keyword" },
+            "severity": { "type": "keyword" },
+            "confidence": { "type": "keyword" }
+          }
+        },
+        "detection": {
+          "properties": {
+            "stage": { "type": "keyword" },
+            "source": { "type": "keyword" },
+            "version": { "type": "keyword" }
+          }
+        },
+        "geoip": {
+          "properties": {
+            "location": { "type": "geo_point" }
+          }
+        }
+      }
+    }
+  },
+  "priority": 200,
+  "_meta": {
+    "description": "2SeC SIEM index template for normalized fields"
+  }
+}

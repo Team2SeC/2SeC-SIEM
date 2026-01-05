@@ -1,0 +1,514 @@
+{
+  "detection_rules": {
+    "metadata": {
+      "version": "1.0",
+      "description": "2SeC SIEM OpenSearch Behavior-based Detection Rules (raw field mode)",
+      "created": "2026-01-02",
+      "index_pattern": "2sec-siem-*",
+      "required_fields": [
+        "source.ip",
+        "http.request.method",
+        "http.response.status_code",
+        "url.path",
+        "url.query",
+        "user_agent.original"
+      ],
+      "unsupported_rules": [
+        "BEHAVIOR-MULTI-001"
+      ]
+    },
+    "rules": [
+      {
+        "rule_id": "BEHAVIOR-SQLI-001",
+        "name": "Repeated SQL Injection Attempts (raw)",
+        "description": "동일 IP에서 1분 내 10회 이상 SQL Injection 패턴 탐지",
+        "severity": "high",
+        "category": "Injection",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "POST"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["200", "500"]
+                }
+              }
+            ],
+            "should": [
+              { "wildcard": { "url.query": { "value": "*union*select*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*' or 1=1*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*' or '1'='1*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*; drop table*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*; delete from*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*admin' --*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*'; --*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*benchmark(*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*sleep(*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*waitfor delay*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*information_schema*", "case_insensitive": true } } }
+            ],
+            "minimum_should_match": 1,
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 10
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts"],
+            "priority": "high"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-XSS-001",
+        "name": "Repeated XSS Attempts (raw)",
+        "description": "동일 IP에서 1분 내 10회 이상 XSS 패턴 탐지",
+        "severity": "high",
+        "category": "Client-Side",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "POST"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["200", "500"]
+                }
+              }
+            ],
+            "should": [
+              { "wildcard": { "url.query": { "value": "*script*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*javascript*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*onload*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*onerror*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*onclick*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*alert*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*prompt*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*confirm*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*eval*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*%3c*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*&lt;*", "case_insensitive": true } } }
+            ],
+            "minimum_should_match": 1,
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 10
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts"],
+            "priority": "high"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-CMD-001",
+        "name": "Repeated Command Injection Attempts (raw)",
+        "description": "동일 IP에서 1분 내 10회 이상 Command Injection 패턴 탐지",
+        "severity": "critical",
+        "category": "Injection",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "POST"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["200", "500"]
+                }
+              }
+            ],
+            "should": [
+              { "wildcard": { "url.query": { "value": "*;whoami*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*;id*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*;ls*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*;cat*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*;pwd*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*|whoami*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*|id*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*|ls*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*%3bwhoami*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*%3bid*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*%7cwhoami*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*%7cid*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*&&whoami*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*&&id*", "case_insensitive": true } } }
+            ],
+            "minimum_should_match": 1,
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 10
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts", "security-critical"],
+            "priority": "critical"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-PATH-001",
+        "name": "Repeated Path Traversal Attempts (raw)",
+        "description": "동일 IP에서 1분 내 10회 이상 Path Traversal 패턴 탐지",
+        "severity": "high",
+        "category": "File Access",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "POST"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["200", "403", "404", "500"]
+                }
+              }
+            ],
+            "should": [
+              { "wildcard": { "url.path": { "value": "*../*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*%2e%2e*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*..%2f*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*..%5c*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*../*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*%2e%2e*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*/etc/passwd*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*/etc/hosts*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*boot.ini*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*windows*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*file=..*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*page=..*", "case_insensitive": true } } },
+              { "wildcard": { "url.query": { "value": "*path=..*", "case_insensitive": true } } }
+            ],
+            "minimum_should_match": 1,
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 10
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts"],
+            "priority": "high"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-SCAN-001",
+        "name": "Web Scanning Activity (raw)",
+        "description": "동일 IP에서 1분 내 30회 이상 스캐닝 패턴 탐지",
+        "severity": "medium",
+        "category": "Reconnaissance",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "HEAD"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["404", "403"]
+                }
+              }
+            ],
+            "should": [
+              { "wildcard": { "url.path": { "value": "*/phpmyadmin*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/wp-admin*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/admin*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/config*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/backup*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/test*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/debug*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/phpinfo*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/manager*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/console*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/wp-login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/administrator*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/webmin*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/cpanel*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/mysql*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/database*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*.bak*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*.sql*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*.zip*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*sqlmap*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*nikto*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*nmap*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*dirb*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*dirbuster*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*gobuster*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*wfuzz*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*burp*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*w3af*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*curl*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*wget*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*python*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*scanner*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*bot*", "case_insensitive": true } } },
+              { "wildcard": { "user_agent.original": { "value": "*crawl*", "case_insensitive": true } } }
+            ],
+            "minimum_should_match": 1,
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 30
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts"],
+            "priority": "medium"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-404-001",
+        "name": "Excessive 404 Errors - Reconnaissance (raw)",
+        "description": "동일 IP에서 1분 내 30회 이상 404 에러 발생",
+        "severity": "medium",
+        "category": "Reconnaissance",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "HEAD"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["404"]
+                }
+              }
+            ],
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 30
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts"],
+            "priority": "medium"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-AUTH-001",
+        "name": "Login Bruteforce Attack (raw)",
+        "description": "동일 IP에서 1분 내 5회 이상 로그인 시도",
+        "severity": "critical",
+        "category": "Authentication Abuse",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "POST"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["401", "403", "200"]
+                }
+              }
+            ],
+            "should": [
+              { "wildcard": { "url.path": { "value": "*/login.php*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/auth*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/signin*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/sign-in*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/logon*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/authentication*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/user/login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/admin/login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/wp-login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/account/login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/portal/login*", "case_insensitive": true } } },
+              { "wildcard": { "url.path": { "value": "*/system/login*", "case_insensitive": true } } }
+            ],
+            "minimum_should_match": 1,
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-1m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 5
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts", "security-critical"],
+            "priority": "critical"
+          },
+          "response": {
+            "block_ip": true,
+            "duration": "1h"
+          }
+        }
+      },
+      {
+        "rule_id": "BEHAVIOR-TIMEOUT-001",
+        "name": "Slow Request Attack - DoS Indicator (raw)",
+        "description": "동일 IP에서 5분 내 20회 이상 408 Timeout 발생",
+        "severity": "high",
+        "category": "Availability",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "terms": {
+                  "http.request.method": ["GET", "POST", "HEAD"]
+                }
+              },
+              {
+                "terms": {
+                  "http.response.status_code": ["408"]
+                }
+              }
+            ],
+            "filter": [
+              {
+                "range": {
+                  "@timestamp": {
+                    "gte": "now-5m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregation": {
+          "terms": {
+            "field": "source.ip",
+            "min_doc_count": 20
+          }
+        },
+        "actions": {
+          "alert": true,
+          "index": "2sec-siem-alerts",
+          "notification": {
+            "channels": ["security-alerts"],
+            "priority": "high"
+          },
+          "response": {
+            "block_ip": true,
+            "duration": "30m"
+          }
+        }
+      }
+    ]
+  }
+}

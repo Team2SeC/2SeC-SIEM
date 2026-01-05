@@ -1,0 +1,51 @@
+title: WEB-PATH-001 Path Traversal Or LFI Attempt
+id: 6d58c5e7-408b-4497-8e3f-8c9c8b14d520
+status: experimental
+description: Detects path traversal and local file inclusion attempts.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_traversal:
+    url.path|contains:
+      - "../"
+      - "..\"
+      - "%2e%2e%2f"
+      - "%2e%2e%5c"
+      - "..%2f"
+      - "..%5c"
+      - "..%252f"
+  selection_query:
+    url.query|contains:
+      - "../"
+      - "..\"
+      - "%2e%2e%2f"
+      - "%2e%2e%5c"
+      - "..%2f"
+      - "..%5c"
+      - "..%252f"
+      - "/etc/passwd"
+      - "/etc/shadow"
+      - "/etc/hosts"
+      - "boot.ini"
+      - "win.ini"
+      - "windows\system32\drivers\etc\hosts"
+      - "file="
+      - "page="
+      - "path="
+      - "include="
+      - "dir="
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "POST"
+  selection_status:
+    http.response.status_code:
+      - 200
+      - 403
+      - 404
+      - 500
+  condition: (selection_traversal or selection_query) and selection_method and selection_status
+level: medium

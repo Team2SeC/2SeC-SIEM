@@ -13,12 +13,13 @@
 3. [카테고리별 룰 분류](#카테고리별-룰-분류)
 4. [심각도별 룰 분류](#심각도별-룰-분류)
 5. [탐지 단계별 룰 분류](#탐지-단계별-룰-분류)
-6. [배포 방법](#배포-방법)
-7. [필드 매핑 테이블](#필드-매핑-테이블)
-8. [임계치 표준화](#임계치-표준화)
-9. [룰 상호 연계](#룰-상호-연계)
-10. [운영 가이드](#운영-가이드)
-11. [변경 이력](#변경-이력)
+6. [Security Analytics 적용](#security-analytics-적용)
+7. [배포 방법](#배포-방법)
+8. [필드 매핑 테이블](#필드-매핑-테이블)
+9. [임계치 표준화](#임계치-표준화)
+10. [룰 상호 연계](#룰-상호-연계)
+11. [운영 가이드](#운영-가이드)
+12. [변경 이력](#변경-이력)
 
 ---
 
@@ -241,25 +242,25 @@
 
 ## 탐지 단계별 룰 분류
 
-### Level 1: Classification (OpenSearch Ingest Pipeline)
+### Level 1: Classification (Security Analytics - Sigma)
 
 **목적**: 단일 이벤트 기준 공격 유형 분류
 
 | Rule ID | 탐지 기준 | 출력 |
 |---------|----------|------|
-| WEB-SQLI-001 | URL query에 SQL 패턴 | attack.* 필드, tag: sqli |
-| WEB-XSS-001 | URL query에 XSS 패턴 | attack.* 필드, tag: xss |
-| WEB-CMD-001 | URL query에 CMD 패턴 | attack.* 필드, tag: cmdi |
-| WEB-PATH-001 | URL path/query에 경로 이동 패턴 | attack.* 필드, tag: path_traversal |
-| WEB-SCAN-001 | 민감 경로 + 403/404 | attack.* 필드, tag: scan |
-| WEB-UA-001 | Suspicious User-Agent | attack.* 필드, tag: suspicious_ua |
-| WEB-404-001 | 404 응답 | attack.* 필드, tag: repeated_404 |
-| WEB-AUTH-001 | 로그인 경로 + POST | attack.* 필드, tag: auth_bruteforce |
-| WEB-TIMEOUT-001 | 408 응답 | attack.* 필드, tag: timeout |
+| WEB-SQLI-001 | URL query에 SQL 패턴 | Security Analytics Alert |
+| WEB-XSS-001 | URL query에 XSS 패턴 | Security Analytics Alert |
+| WEB-CMD-001 | URL query에 CMD 패턴 | Security Analytics Alert |
+| WEB-PATH-001 | URL path/query에 경로 이동 패턴 | Security Analytics Alert |
+| WEB-SCAN-001 | 민감 경로 + 403/404 | Security Analytics Alert |
+| WEB-UA-001 | Suspicious User-Agent | Security Analytics Alert |
+| WEB-404-001 | 404 응답 | Security Analytics Alert |
+| WEB-AUTH-001 | 로그인 경로 + POST | Security Analytics Alert |
+| WEB-TIMEOUT-001 | 408 응답 | Security Analytics Alert |
 
-**구현 위치**: `detection-rules/opensearch-ingest-classification-pipeline.json`  
-**Pipeline ID**: `2sec-siem-classification-v1`  
-**참고**: Logstash 기반 분류는 레거시(비활성)로 간주
+**구현 위치**: `detection-rules/sigma/`  
+**Log Type**: Apache Access  
+**참고**: OpenSearch Ingest Pipeline은 정규화만 수행
 
 ---
 
@@ -291,18 +292,25 @@
 
 - 파일: `detection-rules/opensearch-ingest-classification-pipeline.json`
 - Pipeline ID: `2sec-siem-classification-v1`
+- 역할: 정규화만 수행 (탐지는 Security Analytics에서 처리)
 
 ### 2) Index Template
 
 - 파일: `detection-rules/opensearch-index-template.json`
 - Template ID: `2sec-siem-template-v1`
 
-### 3) Alerting Monitors (attack.* 기반)
+### 3) Alerting Monitors (behavior 기반)
 
 - 파일: `detection-rules/monitors/*.json`
 - API: `POST /_plugins/_alerting/monitors`
 
-### 4) 배포 스크립트
+### 4) Sigma 룰 Import
+
+- 위치: `detection-rules/sigma/`
+- 적용: Security Analytics > Rules > Import Rules
+- Log Type: Apache Access
+
+### 5) 배포 스크립트
 
 - 실행: `detection-rules/scripts/apply-opensearch-assets.sh`
 - 환경 변수: `OPENSEARCH_URL` 필수  

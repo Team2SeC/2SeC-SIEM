@@ -1,0 +1,54 @@
+title: WEB-SQLI-001 SQL Injection Attempt
+id: 9a7f9d84-1b2a-4b67-93bf-5db2e5fb2b1d
+status: experimental
+description: Detects SQL injection patterns in Apache access logs.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_query:
+    url.query|contains:
+      - "union select"
+      - "union all select"
+      - "/*!union*/ select"
+      - "union/**/select"
+      - "' or 1=1"
+      - "' or '1'='1"
+      - "" or "1"="1"
+      - "') or ('1'='1"
+      - "sleep("
+      - "waitfor delay"
+      - "benchmark("
+      - "database()"
+      - "user()"
+      - "@@version"
+      - "information_schema.tables"
+      - "information_schema.columns"
+      - "information_schema"
+      - "extractvalue("
+      - "updatexml("
+      - "concat("
+      - "group_concat("
+      - "; drop table"
+      - "; delete from"
+      - "admin' --"
+      - "'; --"
+      - "--"
+      - "#"
+      - "%27%20or%201%3d1"
+      - "%55%4e%49%4f%4e"
+      - "char(85,78,73,79,78"
+      - "union%20select"
+      - "union+select"
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "POST"
+  selection_status:
+    http.response.status_code:
+      - 200
+      - 500
+  condition: selection_query and selection_method and selection_status
+level: medium

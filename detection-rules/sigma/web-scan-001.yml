@@ -1,0 +1,91 @@
+title: WEB-SCAN-001 Web Scanning Activity
+id: 234b7a8c-0f3e-4a18-9a0a-4b8a5d55c7dd
+status: experimental
+description: Detects scanning of common sensitive paths or scanner user agents.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_paths:
+    url.path|contains:
+      - "/phpmyadmin"
+      - "/wp-admin"
+      - "/admin"
+      - "/administrator"
+      - "/manager"
+      - "/control-panel"
+      - "/cpanel"
+      - "/backup"
+      - "/backup.zip"
+      - "/backup.tar.gz"
+      - "/db_backup.sql"
+      - "/website.bak"
+      - "/old"
+      - "/test"
+      - "/dev"
+      - "/debug"
+      - "/phpinfo.php"
+      - "/info.php"
+      - "/test.php"
+      - "/api"
+      - "/api/v1"
+      - "/api/swagger"
+      - "/api-docs"
+      - "/swagger-ui"
+      - "/graphql"
+      - "/graphql-playground"
+      - "/.git"
+      - "/.git/config"
+      - "/.env"
+      - "/.env.production"
+      - "/config.php"
+      - "/configuration.php"
+      - "/wp-config.php"
+      - "/settings.py"
+      - "/server-status"
+      - "/server-info"
+      - "/status"
+      - "/health"
+      - "/metrics"
+      - "/robots.txt"
+      - "/sitemap.xml"
+      - "/icons"
+      - "/wp-content"
+      - "/wp-includes"
+      - "/admin/config"
+      - "/storage"
+      - "/mysql"
+      - "/database"
+  selection_ua:
+    user_agent.original|contains:
+      - "sqlmap"
+      - "nikto"
+      - "nmap"
+      - "dirb"
+      - "dirbuster"
+      - "gobuster"
+      - "wfuzz"
+      - "burp"
+      - "zap"
+      - "w3af"
+      - "curl"
+      - "wget"
+      - "python"
+      - "scanner"
+      - "bot"
+      - "crawl"
+      - "nuclei"
+      - "ffuf"
+      - "dirsearch"
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "HEAD"
+  selection_status:
+    http.response.status_code:
+      - 403
+      - 404
+  condition: (selection_paths or selection_ua) and selection_method and selection_status
+level: low

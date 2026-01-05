@@ -1,0 +1,20 @@
+title: WEB-TIMEOUT-001 Repeated Request Timeout
+id: 2a8c9b0f-6b30-4b74-94ae-6f2dbbd0e964
+status: experimental
+description: Detects request timeout responses that may indicate slow request attacks.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "POST"
+      - "HEAD"
+  selection_status:
+    http.response.status_code:
+      - 408
+  condition: selection_method and selection_status
+level: medium

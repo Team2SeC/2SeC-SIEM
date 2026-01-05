@@ -1,0 +1,68 @@
+title: WEB-XSS-001 Cross Site Scripting Attempt
+id: 9c7b7b2d-8e14-45ef-8c62-7e8c1c8f9f21
+status: experimental
+description: Detects XSS payloads in Apache access logs.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_query:
+    url.query|contains:
+      - "<script"
+      - "</script"
+      - "<script src="
+      - "<img"
+      - "<iframe"
+      - "<svg"
+      - "<object"
+      - "<embed"
+      - "<video"
+      - "<audio"
+      - "<body"
+      - "onerror="
+      - "onload="
+      - "onclick="
+      - "onmouseover="
+      - "onfocus="
+      - "onblur="
+      - "javascript:"
+      - "vbscript:"
+      - "data:text/html"
+      - "alert"
+      - "prompt"
+      - "confirm"
+      - "eval"
+      - "%3cscript%3e"
+      - "%3cimg"
+      - "%3ciframe"
+      - "%3csvg"
+      - "%3cobject"
+      - "%3cembed"
+      - "%3cvideo"
+      - "%3caudio"
+      - "%3cbody"
+      - "onerror%3d"
+      - "onload%3d"
+      - "onclick%3d"
+      - "onmouseover%3d"
+      - "onfocus%3d"
+      - "onblur%3d"
+      - "javascript%3a"
+      - "vbscript%3a"
+      - "data%3atext%2fhtml"
+      - "&lt;script&gt;"
+      - "&#60;script&#62;"
+      - "\x3cscript\x3e"
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "POST"
+  selection_status:
+    http.response.status_code:
+      - 200
+      - 302
+      - 500
+  condition: selection_query and selection_method and selection_status
+level: medium

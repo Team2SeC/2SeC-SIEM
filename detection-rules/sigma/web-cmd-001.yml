@@ -1,0 +1,49 @@
+title: WEB-CMD-001 Command Injection Attempt
+id: 6b27cf6a-2f7b-4c71-9e47-6472f5d9f0b0
+status: experimental
+description: Detects command injection patterns in Apache access logs.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_query:
+    url.query|contains:
+      - ";"
+      - "|"
+      - "&&"
+      - "||"
+      - "`"
+      - "$("
+      - "%3b"
+      - "%7c"
+      - "%26%26"
+      - "%7c%7c"
+      - "%24%28"
+      - "whoami"
+      - "id"
+      - "ls"
+      - "cat"
+      - "pwd"
+      - "uname"
+      - "hostname"
+      - "ifconfig"
+      - "wget"
+      - "curl"
+      - "nc"
+      - "bash"
+      - "sh"
+      - "python"
+      - "/etc/passwd"
+      - "/etc/shadow"
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "POST"
+  selection_status:
+    http.response.status_code:
+      - 200
+      - 500
+  condition: selection_query and selection_method and selection_status
+level: high

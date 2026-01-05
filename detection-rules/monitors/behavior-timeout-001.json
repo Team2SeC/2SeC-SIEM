@@ -1,0 +1,62 @@
+{
+  "type": "monitor",
+  "name": "BEHAVIOR-TIMEOUT-001 - Slow Request Attack",
+  "enabled": true,
+  "schedule": {
+    "period": {
+      "interval": 5,
+      "unit": "MINUTES"
+    }
+  },
+  "inputs": [
+    {
+      "search": {
+        "indices": ["2sec-siem-*"] ,
+        "query": {
+          "size": 0,
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "term": {
+                    "attack.rule_id": "WEB-TIMEOUT-001"
+                  }
+                }
+              ],
+              "filter": [
+                {
+                  "range": {
+                    "@timestamp": {
+                      "gte": "now-5m"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "aggs": {
+            "by_source": {
+              "terms": {
+                "field": "source.ip",
+                "min_doc_count": 20
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "name": "BEHAVIOR-TIMEOUT-001 trigger",
+      "severity": 2,
+      "condition": {
+        "script": {
+          "lang": "painless",
+          "source": "return ctx.results[0].aggregations.by_source.buckets.size() > 0;"
+        }
+      },
+      "actions": []
+    }
+  ]
+}

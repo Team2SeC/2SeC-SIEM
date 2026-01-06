@@ -42,7 +42,7 @@ variable "opensearch_engine_version" {
 variable "opensearch_instance_type" {
   type        = string
   description = "OpenSearch 데이터 노드 인스턴스 타입"
-  default     = "t3.small.search"
+  default     = "t3.medium.search"
 }
 
 variable "opensearch_instance_count" {

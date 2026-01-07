@@ -11,7 +11,7 @@ detection:
   selection_traversal:
     url.path|contains:
       - "../"
-      - "..\"
+      - '..\\'
       - "%2e%2e%2f"
       - "%2e%2e%5c"
       - "..%2f"
@@ -20,7 +20,7 @@ detection:
   selection_query:
     url.query|contains:
       - "../"
-      - "..\"
+      - '..\\'
       - "%2e%2e%2f"
       - "%2e%2e%5c"
       - "..%2f"
@@ -31,7 +31,7 @@ detection:
       - "/etc/hosts"
       - "boot.ini"
       - "win.ini"
-      - "windows\system32\drivers\etc\hosts"
+      - 'windows\\system32\\drivers\\etc\\hosts'
       - "file="
       - "page="
       - "path="

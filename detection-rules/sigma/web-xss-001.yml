@@ -54,7 +54,7 @@ detection:
       - "data%3atext%2fhtml"
       - "&lt;script&gt;"
       - "&#60;script&#62;"
-      - "\x3cscript\x3e"
+      - '\\x3cscript\\x3e'
   selection_method:
     http.request.method|contains:
       - "GET"

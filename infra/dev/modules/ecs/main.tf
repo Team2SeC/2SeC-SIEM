@@ -2,12 +2,6 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
-  # OpenSearch 도메인 이름은 opensearch 모듈과 동일한 규칙을 사용해야 함
-  opensearch_domain_name = substr(
-    lower("siem-${replace(replace(var.project_name, " ", "-"), "_", "-")}-${var.environment}"),
-    0,
-    28
-  )
 }
 
 # ECS Cluster for Logstash
@@ -132,20 +126,20 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
           "dynamodb:Scan",
           "dynamodb:Query"
         ]
-        Resource = [ 
+        Resource = [
           "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.kcl_application_name}",
-          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/*"  # ← 이것도 추가!
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/*"
         ]
       },
       {
-        Sid    = "AllowDynamoDBTableManagement"  # 새로 분리
-        Effect = "Allow" 
+        Sid    = "AllowDynamoDBTableManagement"
+        Effect = "Allow"
         Action = [
           "dynamodb:CreateTable",
           "dynamodb:ListTables",
-          "dynamodb:DescribeTable"  # 이것도 전역 필요
-      ]
-      Resource = "*"  # CreateTable은 전역 권한이 필요
+          "dynamodb:DescribeTable"
+        ]
+        Resource = "*"
       },
       {
         Sid    = "AllowOpenSearchDataPlane"
@@ -153,10 +147,13 @@ resource "aws_iam_role_policy" "task_kinesis_dynamodb" {
         Action = [
           "es:ESHttpGet",
           "es:ESHttpPost",
-          "es:ESHttpPut"
+          "es:ESHttpPut",
+          "es:ESHttpHead",
+          "es:ESHttpDelete",
+          "es:ESHttpPatch"
         ]
-        # opensearch 모듈과 동일한 도메인 네이밍 규칙을 사용하여 ARN 계산
-        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.opensearch_domain_name}/*"
+        # opensearch 모듈의 실제 도메인 이름을 사용하여 ARN 계산
+        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${var.opensearch_domain_name}/*"
       }
     ]
   })
@@ -207,7 +204,7 @@ resource "aws_ecs_task_definition" "logstash" {
           name  = "APPLICATION_NAME"
           value = var.kcl_application_name
         },
-                {
+        {
           name  = "OPENSEARCH_HOST"
           value = var.opensearch_host
         }

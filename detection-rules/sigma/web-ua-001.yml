@@ -1,0 +1,46 @@
+title: WEB-UA-001 Suspicious User Agent
+id: 0b0a0d1b-9a73-4b63-8ce5-3e4d7ef9a6a6
+status: experimental
+description: Detects suspicious or automated user agents.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_ua:
+    user_agent.original|contains:
+      - "sqlmap"
+      - "nikto"
+      - "nmap"
+      - "masscan"
+      - "dirb"
+      - "dirbuster"
+      - "gobuster"
+      - "wfuzz"
+      - "dirsearch"
+      - "ffuf"
+      - "burp"
+      - "zap"
+      - "w3af"
+      - "nuclei"
+      - "acunetix"
+      - "nessus"
+      - "openvas"
+      - "curl"
+      - "wget"
+      - "python-requests"
+      - "go-http-client"
+      - "apache-httpclient"
+      - "java/"
+      - "libwww"
+      - "scrapy"
+      - "python-urllib"
+      - "windowspowershell"
+      - "bot"
+      - "spider"
+      - "crawler"
+      - "scraper"
+      - "scanner"
+  condition: selection_ua
+level: low

@@ -85,6 +85,11 @@ class AttackPatternMatcher
       @severity_config = default_severity_config
     end
   end
+
+  def check_configurations_and_update_timer
+      check_configurations
+      @next_config_check = Time.now + CONFIG_CHECK_INTERVAL
+  end
   
   #---------------------------------------------------------------------------
   # 패턴 컴파일 (정규식으로 변환)

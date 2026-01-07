@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "tfstate_bucket" {
     effect = "Allow"
 
     principals {
-      type        = "AWS"
+      type = "AWS"
       # 이 계정(Account ID)의 root를 principal로 지정
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }

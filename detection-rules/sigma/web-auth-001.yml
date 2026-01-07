@@ -1,0 +1,50 @@
+title: WEB-AUTH-001 Authentication Abuse Attempt
+id: 2ad79f6a-3b88-4a90-8c73-7dc2fcb7794b
+status: experimental
+description: Detects login and authentication abuse attempts.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_paths:
+    url.path|contains:
+      - "/login"
+      - "/login.php"
+      - "/login.html"
+      - "/signin"
+      - "/sign-in"
+      - "/sign_in"
+      - "/logon"
+      - "/logon.php"
+      - "/authenticate"
+      - "/authentication"
+      - "/auth"
+      - "/admin/login"
+      - "/admin/login.php"
+      - "/administrator/login"
+      - "/wp-login.php"
+      - "/manager/login"
+      - "/control-panel/login"
+      - "/api/auth"
+      - "/api/login"
+      - "/api/v1/authenticate"
+      - "/api/v1/token"
+      - "/oauth/token"
+      - "/administrator/index.php"
+      - "/user/login"
+      - "/admin"
+      - "/customer/account/login"
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "POST"
+  selection_status:
+    http.response.status_code:
+      - 200
+      - 302
+      - 401
+      - 403
+  condition: selection_paths and selection_method and selection_status
+level: high

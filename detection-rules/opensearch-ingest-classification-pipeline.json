@@ -1,0 +1,11 @@
+{
+  "description": "2SeC SIEM ingest normalization pipeline (v1.1, detection handled by Security Analytics)",
+  "processors": [
+    {
+      "script": {
+        "lang": "painless",
+        "source": "if (ctx.source != null && ctx.source.containsKey('address')) {\n  if (ctx.source.ip == null) {\n    ctx.source.ip = ctx.source.address;\n  }\n}\n\nif (ctx.tags == null) {\n  ctx.tags = new ArrayList();\n}\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+title: WEB-404-001 Repeated 404 Access
+id: 2c0f7f1e-6790-44c8-86b7-7c53f2e6d6be
+status: experimental
+description: Detects 404 responses that may indicate reconnaissance.
+author: 2SeC Team
+logsource:
+  category: webserver
+  product: apache
+  service: accesslog
+detection:
+  selection_method:
+    http.request.method|contains:
+      - "GET"
+      - "HEAD"
+  selection_status:
+    http.response.status_code:
+      - 404
+  condition: selection_method and selection_status
+level: low

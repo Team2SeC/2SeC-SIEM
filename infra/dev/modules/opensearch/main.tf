@@ -93,16 +93,19 @@ resource "aws_opensearch_domain" "this" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect    = "Allow"
+        Effect = "Allow"
         # OpenSearch HTTP(Data plane)에 접근할 수 있는 IAM 주체들 (Logstash 태스크 Role + Admin Role/User 등)
         Principal = { AWS = distinct(concat(var.additional_iam_principals, [var.master_user_arn])) }
-        # OpenSearch 도메인 HTTP(Data plane) 호출만 허용 (관리 작업은 IAM 정책으로 제어)
+        # OpenSearch 도메인 HTTP(Data plane) 호출 허용 (인덱스 생성, 데이터 쓰기, 읽기, 삭제 등)
         Action = [
           "es:ESHttpGet",
           "es:ESHttpPost",
-          "es:ESHttpPut"
+          "es:ESHttpPut",
+          "es:ESHttpDelete",
+          "es:ESHttpPatch",
+          "es:ESHttpHead"
         ]
-        Resource  = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
+        Resource = "arn:aws:es:${var.aws_region}:${data.aws_caller_identity.current.account_id}:domain/${local.domain_name}/*"
       }
     ]
   })
@@ -115,6 +118,16 @@ resource "aws_opensearch_domain" "this" {
   log_publishing_options {
     cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
     log_type                 = "SEARCH_SLOW_LOGS"
+  }
+
+  log_publishing_options {
+    cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
+    log_type                 = "ES_APPLICATION_LOGS"
+  }
+
+  log_publishing_options {
+    cloudwatch_log_group_arn = aws_cloudwatch_log_group.opensearch_logs.arn
+    log_type                 = "AUDIT_LOGS"
   }
 
   tags = merge(
